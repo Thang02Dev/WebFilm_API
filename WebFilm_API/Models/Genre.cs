@@ -14,6 +14,6 @@ namespace WebFilm_API.Models
         [Column(TypeName = "varchar")]
         [StringLength(100)]
         public string Slug { get; set; } = string.Empty;
-        public List<Movie>? Movies { get; set; }
+        public List<MovieGenre> MovieGenres { get; set; } = new List<MovieGenre>();
     }
 }

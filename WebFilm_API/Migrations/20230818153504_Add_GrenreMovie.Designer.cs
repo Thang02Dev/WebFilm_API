@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WebFilm_API.DB;
 
@@ -11,9 +12,11 @@ using WebFilm_API.DB;
 namespace WebFilm_API.Migrations
 {
     [DbContext(typeof(MyDbContext))]
-    partial class MyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230818153504_Add_GrenreMovie")]
+    partial class Add_GrenreMovie
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,6 +24,21 @@ namespace WebFilm_API.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("GenreMovie", b =>
+                {
+                    b.Property<int>("GenresId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MoviesId")
+                        .HasColumnType("int");
+
+                    b.HasKey("GenresId", "MoviesId");
+
+                    b.HasIndex("MoviesId");
+
+                    b.ToTable("GenreMovie");
+                });
 
             modelBuilder.Entity("WebFilm_API.Models.Category", b =>
                 {
@@ -231,21 +249,6 @@ namespace WebFilm_API.Migrations
                     b.ToTable("Movies");
                 });
 
-            modelBuilder.Entity("WebFilm_API.Models.MovieGenre", b =>
-                {
-                    b.Property<int>("MovieId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("GenreId")
-                        .HasColumnType("int");
-
-                    b.HasKey("MovieId", "GenreId");
-
-                    b.HasIndex("GenreId");
-
-                    b.ToTable("MovieGenres");
-                });
-
             modelBuilder.Entity("WebFilm_API.Models.User", b =>
                 {
                     b.Property<int>("Id")
@@ -283,6 +286,21 @@ namespace WebFilm_API.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("GenreMovie", b =>
+                {
+                    b.HasOne("WebFilm_API.Models.Genre", null)
+                        .WithMany()
+                        .HasForeignKey("GenresId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("WebFilm_API.Models.Movie", null)
+                        .WithMany()
+                        .HasForeignKey("MoviesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("WebFilm_API.Models.Episode", b =>
                 {
                     b.HasOne("WebFilm_API.Models.Movie", "Movie")
@@ -307,25 +325,6 @@ namespace WebFilm_API.Migrations
                     b.Navigation("Country");
                 });
 
-            modelBuilder.Entity("WebFilm_API.Models.MovieGenre", b =>
-                {
-                    b.HasOne("WebFilm_API.Models.Genre", "Genre")
-                        .WithMany("MovieGenres")
-                        .HasForeignKey("GenreId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("WebFilm_API.Models.Movie", "Movie")
-                        .WithMany("MovieGenres")
-                        .HasForeignKey("MovieId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Genre");
-
-                    b.Navigation("Movie");
-                });
-
             modelBuilder.Entity("WebFilm_API.Models.Category", b =>
                 {
                     b.Navigation("Movies");
@@ -334,16 +333,6 @@ namespace WebFilm_API.Migrations
             modelBuilder.Entity("WebFilm_API.Models.Country", b =>
                 {
                     b.Navigation("Movies");
-                });
-
-            modelBuilder.Entity("WebFilm_API.Models.Genre", b =>
-                {
-                    b.Navigation("MovieGenres");
-                });
-
-            modelBuilder.Entity("WebFilm_API.Models.Movie", b =>
-                {
-                    b.Navigation("MovieGenres");
                 });
 #pragma warning restore 612, 618
         }
