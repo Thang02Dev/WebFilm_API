@@ -34,5 +34,7 @@ namespace WebFilm_API.ViewModels
         public string? Tags { get; set; } = string.Empty;
         public bool? Top_View { get; set; }
         public int? Episode_Number { get; set; }
+        public int? Position { get; set; }
+        public int[] GenreId { get; set; }
     }
 }

@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using WebFilm_API.Commons;
 using WebFilm_API.DB;
 using WebFilm_API.Models;
 using WebFilm_API.ViewModels;
-
 namespace WebFilm_API.Services.CategoryServices
 {
     public class CategoryService : ICategoryService
@@ -11,6 +11,14 @@ namespace WebFilm_API.Services.CategoryServices
         public CategoryService(MyDbContext dbContext) 
         {
             _dbContext = dbContext;
+        }
+
+        public async Task<int> ChangedPosition(int id,int newPosition)
+        {
+            var cate = await _dbContext.Categories.FirstAsync(x => x.Id == id);
+            cate.Position = newPosition;
+            await _dbContext.SaveChangesAsync();
+            return (int)cate.Position;
         }
 
         public async Task<bool> ChangedStatus(int id)
@@ -36,8 +44,8 @@ namespace WebFilm_API.Services.CategoryServices
                 Name = model.Name,
                 Description = model.Description,
                 Position = model.Position,
-                Slug = model.Slug,
-                Status = model.Status,
+                Slug = ConvertDatas.ConvertToSlug(model.Name),
+                Status = true,
             };
             await _dbContext.Categories.AddAsync(cate);
             await _dbContext.SaveChangesAsync();
@@ -95,9 +103,8 @@ namespace WebFilm_API.Services.CategoryServices
             if (cate == null) return null;
             cate.Name = model.Name;
             cate.Description = model.Description;
-            cate.Status = model.Status;
             cate.Position = model.Position;
-            cate.Slug = model.Slug;
+            cate.Slug = ConvertDatas.ConvertToSlug(model.Name);
             await _dbContext.SaveChangesAsync();
             return model;
         }

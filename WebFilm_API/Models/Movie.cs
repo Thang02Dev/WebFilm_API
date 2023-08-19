@@ -38,6 +38,7 @@ namespace WebFilm_API.Models
         public string? Tags { get; set; } = string.Empty;
         public bool? Top_View { get; set; }
         public int? Episode_Number { get; set; }
+        public int? Position { get; set; }
 
         public List<MovieGenre> MovieGenres { get; set; } = new List<MovieGenre>();
     }

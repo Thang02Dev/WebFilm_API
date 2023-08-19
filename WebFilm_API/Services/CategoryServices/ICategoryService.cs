@@ -12,6 +12,6 @@ namespace WebFilm_API.Services.CategoryServices
         Task<CategoryViewModel?> Update(int id, CategoryViewModel model);
         Task<bool> CheckName(string name);
         Task<bool> ChangedStatus(int id);
-
+        Task<int> ChangedPosition(int id,int newPosition);
     }
 }
