@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using WebFilm_API.DB;
 using WebFilm_API.Services.CategoryServices;
 using WebFilm_API.Services.CountryServices;
+using WebFilm_API.Services.EpisodeServices;
 using WebFilm_API.Services.GenreServices;
 using WebFilm_API.Services.LinkServerServices;
 using WebFilm_API.Services.MovieServices;
@@ -20,6 +21,7 @@ builder.Services.AddScoped<ICountryService,CountryService>();
 builder.Services.AddScoped<IGenreService,GenreService>();
 builder.Services.AddScoped<IMovieService,MovieService>();
 builder.Services.AddScoped<ILinkServerService,LinkServerService>();
+builder.Services.AddScoped<IEpisodeService,EpisodeService>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
