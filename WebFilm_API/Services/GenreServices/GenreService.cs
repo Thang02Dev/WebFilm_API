@@ -33,6 +33,7 @@ namespace WebFilm_API.Services.GenreServices
             if (model == null) return null;
             var genre = new Genre
             {
+                
                 Name = model.Name,
                 Description = model.Description,
                 Slug = ConvertDatas.ConvertToSlug(model.Name),

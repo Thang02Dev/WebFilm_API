@@ -9,6 +9,7 @@ namespace WebFilm_API.ViewModels
         public int? MovieId { get; set; }
         [StringLength(250,ErrorMessage ="Chuỗi link phim không quá 250 ký tự")]
         public string Link { get; set; } = string.Empty;
-        public int Episode_Number { get; set; }
+        public int Episode_Number { get; set; } //VD: Tập 1, Tập 2,...
+        public int LinkServerId { get; set; }
     }
 }

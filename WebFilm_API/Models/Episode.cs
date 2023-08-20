@@ -13,6 +13,7 @@ namespace WebFilm_API.Models
         public string Link { get; set; } = string.Empty;
         public int Episode_Number { get; set; }
         public Movie? Movie { get; set; }
-
+        public int? LinkServerId { get; set; }
+        public LinkServer? LinkServer { get; set; }
     }
 }

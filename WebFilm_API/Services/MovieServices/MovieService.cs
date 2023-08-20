@@ -1,9 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using WebFilm_API.Commons;
 using WebFilm_API.DB;
 using WebFilm_API.Models;
-using WebFilm_API.Services.MovieService;
 using WebFilm_API.ViewModels;
 
 namespace WebFilm_API.Services.MovieServices
@@ -30,6 +28,26 @@ namespace WebFilm_API.Services.MovieServices
             await _dbContext.SaveChangesAsync();
             return movie.Status;
         }
+
+        public async Task<bool> ChangedTopView(int id)
+        {
+            var movie = await _dbContext.Movies.FirstAsync(x => x.Id == id);
+            movie.Top_View = !movie.Top_View;
+            await _dbContext.SaveChangesAsync();
+#pragma warning disable CS8629 // Nullable value type may be null.
+            return (bool)movie.Top_View;
+#pragma warning restore CS8629 // Nullable value type may be null.
+        }
+        public async Task<bool> ChangedHot(int id)
+        {
+            var movie = await _dbContext.Movies.FirstAsync(x => x.Id == id);
+            movie.Hot = !movie.Hot;
+            await _dbContext.SaveChangesAsync();
+            #pragma warning disable CS8629 // Nullable value type may be null.
+            return (bool) movie.Hot;
+            #pragma warning restore CS8629 // Nullable value type may be null.
+        }
+
 
         public async Task<bool> CheckName(string name)
         {
@@ -66,7 +84,7 @@ namespace WebFilm_API.Services.MovieServices
             await _dbContext.Movies.AddAsync(movie);
             await _dbContext.SaveChangesAsync();
 
-            foreach (var item in model.GenreId)
+            foreach (var item in model.GenreId.ToList())
             {
                 var moviegenre = new MovieGenre
                 {
@@ -79,29 +97,140 @@ namespace WebFilm_API.Services.MovieServices
             return model;
         }
 
-        public Task<bool> Delete(int id)
+        public async Task<bool> Delete(int id)
         {
-            throw new NotImplementedException();
+            var movie = await _dbContext.Movies.FirstOrDefaultAsync(x => x.Id == id);
+            if (movie == null) return false;
+            foreach (var mg in await _dbContext.MovieGenres.Where(x => x.MovieId == movie.Id).ToListAsync())
+            {
+                _dbContext.MovieGenres.Remove(mg);
+            }
+            _dbContext.Movies.Remove(movie);
+            await _dbContext.SaveChangesAsync();
+            return true;
         }
 
-        public Task<List<MovieViewModel>> GetAll()
+        public async Task<List<MovieViewModel>> GetAll()
         {
-            throw new NotImplementedException();
+            var query = from movie in _dbContext.Movies
+                        orderby movie.Id descending
+                        select new MovieViewModel
+                        {
+                            Id = movie.Id,
+                            Title = movie.Title,
+                            Description = movie.Description,
+                            Position = movie.Position,
+                            Slug = movie.Slug,
+                            Status = movie.Status,
+                            CategoryId = movie.CategoryId,
+                            CountryId = movie.CountryId,
+                            Created_Date = movie.Created_Date,
+                            Updated_Date = movie.Updated_Date,
+                            Duration_Minutes = movie.Duration_Minutes,
+                            Episode_Number = movie.Episode_Number,
+                            Hot = movie.Hot,
+                            Image = movie.Image,
+                            Name_Eng = movie.Name_Eng,
+                            Resolution = movie.Resolution,
+                            Subtitle = movie.Subtitle,
+                            Top_View = movie.Top_View,
+                            Trailer = movie.Trailer,
+                            Year_Release = movie.Year_Release,
+                            Tags = movie.Tags,
+                            GenreId = _dbContext.MovieGenres.Where(x => x.MovieId == movie.Id).Select(x=>x.GenreId).ToList(),
+                        };
+            return await query.ToListAsync();
         }
 
-        public Task<MovieViewModel?> GetById(int id)
+        public async Task<MovieViewModel?> GetById(int id)
         {
-            throw new NotImplementedException();
+            var query = from movie in _dbContext.Movies
+                        where movie.Id == id
+                        select new MovieViewModel
+                        {
+                            Id = movie.Id,
+                            Title = movie.Title,
+                            Description = movie.Description,
+                            Position = movie.Position,
+                            Slug = movie.Slug,
+                            Status = movie.Status,
+                            CategoryId = movie.CategoryId,
+                            CountryId = movie.CountryId,
+                            Created_Date = movie.Created_Date,
+                            Updated_Date = movie.Updated_Date,
+                            Duration_Minutes = movie.Duration_Minutes,
+                            Episode_Number = movie.Episode_Number,
+                            Hot = movie.Hot,
+                            Image = movie.Image,
+                            Name_Eng = movie.Name_Eng,
+                            Resolution = movie.Resolution,
+                            Subtitle = movie.Subtitle,
+                            Top_View = movie.Top_View,
+                            Trailer = movie.Trailer,
+                            Year_Release = movie.Year_Release,
+                            Tags = movie.Tags,
+                            GenreId = _dbContext.MovieGenres.Where(x => x.MovieId == movie.Id).Select(x => x.GenreId).ToList(),
+                        };
+            return await query.FirstOrDefaultAsync();
         }
 
-        public Task<MoviePagin?> Pagination(int currentPage)
+        public async Task<MoviePagin?> Pagination(int currentPage)
         {
-            throw new NotImplementedException();
+            var pageResults = 20f;
+            var pageCount = Math.Ceiling(_dbContext.Movies.Count() / pageResults);
+
+            var movies = await GetAll();
+
+            var result = movies.Skip((currentPage - 1) * (int)pageResults).Take((int)pageResults).ToList();
+
+            if (result == null) return null;
+
+            var moviePagin = new MoviePagin
+            {
+                MovieViewModels = result,
+                CurrentPage = currentPage,
+                PageCount = (int)pageCount
+            };
+            return moviePagin;
         }
 
-        public Task<MovieViewModel?> Update(int id, MovieViewModel model)
+        public async Task<MovieViewModel?> Update(int id, MovieViewModel model)
         {
-            throw new NotImplementedException();
+            var movie = await _dbContext.Movies.FirstOrDefaultAsync(x => x.Id == id);
+            if (movie == null) return null;
+            movie.Title = model.Title;
+            movie.Description = model.Description;
+            movie.Position = model.Position;
+            movie.Slug = ConvertDatas.ConvertToSlug(model.Title);
+            movie.Status = true;
+            movie.CategoryId = model.CategoryId;
+            movie.CountryId = model.CountryId;
+            movie.Updated_Date = DateTime.Now;
+            movie.Duration_Minutes = model.Duration_Minutes;
+            movie.Episode_Number = model.Episode_Number;
+            movie.Image = model.Image;
+            movie.Name_Eng = model.Name_Eng;
+            movie.Resolution = model.Resolution;
+            movie.Subtitle = model.Subtitle;
+            movie.Trailer = model.Trailer;
+            movie.Year_Release = model.Year_Release;
+            movie.Tags = model.Tags;
+            movie.Top_View = model.Top_View;
+            movie.Hot = model.Hot;
+
+            await _dbContext.SaveChangesAsync();
+
+            foreach (var item in model.GenreId.ToList())
+            {
+                var moviegenre = new MovieGenre
+                {
+                    MovieId = id,
+                    GenreId = item,
+                };
+                await _dbContext.MovieGenres.AddAsync(moviegenre);
+                await _dbContext.SaveChangesAsync();
+            }
+            return model;
         }
     }
 }

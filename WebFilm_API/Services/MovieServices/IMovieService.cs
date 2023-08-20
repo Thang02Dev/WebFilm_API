@@ -1,6 +1,6 @@
 ﻿using WebFilm_API.ViewModels;
 
-namespace WebFilm_API.Services.MovieService
+namespace WebFilm_API.Services.MovieServices
 {
     public interface IMovieService
     {
@@ -11,7 +11,9 @@ namespace WebFilm_API.Services.MovieService
         Task<MovieViewModel?> Update(int id, MovieViewModel model);
         Task<bool> CheckName(string name);
         Task<bool> ChangedStatus(int id);
+        Task<bool> ChangedHot(int id);
         Task<int> ChangedPosition(int id, int newPosition);
+        Task<bool> ChangedTopView(int id);
         Task<MoviePagin?> Pagination(int currentPage);
     }
 }
