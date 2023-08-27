@@ -113,6 +113,12 @@ namespace WebFilm_API.Services.MovieServices
         public async Task<List<MovieViewModel>> GetAll()
         {
             var query = from movie in _dbContext.Movies
+                        join category in _dbContext.Categories 
+                            on movie.CategoryId equals category.Id into joinCategories
+                            from joinCategory in joinCategories.DefaultIfEmpty()
+                        join country in _dbContext.Countries
+                            on movie.CountryId equals country.Id into joinCountries
+                            from joinCountry in joinCountries.DefaultIfEmpty()
                         orderby movie.Id descending
                         select new MovieViewModel
                         {
@@ -138,6 +144,8 @@ namespace WebFilm_API.Services.MovieServices
                             Year_Release = movie.Year_Release,
                             Tags = movie.Tags,
                             GenreId = _dbContext.MovieGenres.Where(x => x.MovieId == movie.Id).Select(x=>x.GenreId).ToList(),
+                            CountryName = joinCountry.Name,
+                            CategoryName = joinCategory.Name
                         };
             return await query.ToListAsync();
         }
@@ -145,6 +153,12 @@ namespace WebFilm_API.Services.MovieServices
         public async Task<MovieViewModel?> GetById(int id)
         {
             var query = from movie in _dbContext.Movies
+                        join category in _dbContext.Categories
+                            on movie.CategoryId equals category.Id into joinCategories
+                        from joinCategory in joinCategories.DefaultIfEmpty()
+                        join country in _dbContext.Countries
+                            on movie.CountryId equals country.Id into joinCountries
+                        from joinCountry in joinCountries.DefaultIfEmpty()
                         where movie.Id == id
                         select new MovieViewModel
                         {
@@ -170,8 +184,17 @@ namespace WebFilm_API.Services.MovieServices
                             Year_Release = movie.Year_Release,
                             Tags = movie.Tags,
                             GenreId = _dbContext.MovieGenres.Where(x => x.MovieId == movie.Id).Select(x => x.GenreId).ToList(),
+                            CountryName = joinCountry.Name,
+                            CategoryName = joinCategory.Name,
                         };
-            return await query.FirstOrDefaultAsync();
+            var _movie = await query.FirstOrDefaultAsync();
+            if (_movie == null) return null;
+            foreach (var item in _movie.GenreId)
+            {
+                var genreName = await _dbContext.Genres.FirstAsync(x => x.Id == item);
+                _movie.GenreName.Add(genreName.Name);
+            }
+            return _movie;
         }
 
         public async Task<MoviePagin?> Pagination(int currentPage)
