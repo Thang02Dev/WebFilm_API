@@ -22,6 +22,12 @@ namespace WebFilm_API.Controllers
             if (rs == null) return NotFound();
             return Ok(rs);
         }
+        [HttpGet("get-count")]
+        public async Task<IActionResult> GetCount()
+        {
+            var rs = await _service.GetCount();
+            return Ok(rs);
+        }
         [HttpGet("get-by-status")]
         public async Task<IActionResult> GetByStatus()
         {

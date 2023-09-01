@@ -275,5 +275,10 @@ namespace WebFilm_API.Services.MovieServices
                         };
             return await query.ToListAsync();
         }
+
+        public async Task<int> GetCount()
+        {
+            return await _dbContext.Movies.CountAsync();
+        }
     }
 }

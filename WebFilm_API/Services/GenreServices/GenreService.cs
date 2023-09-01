@@ -13,6 +13,10 @@ namespace WebFilm_API.Services.GenreServices
         {
             _dbContext = dbContext;
         }
+        public async Task<int> GetCount()
+        {
+            return await _dbContext.Genres.CountAsync();
+        }
         public async Task<bool> ChangedStatus(int id)
         {
             var genre = await _dbContext.Genres.FirstAsync(x => x.Id == id);

@@ -5,6 +5,7 @@ namespace WebFilm_API.Services.CountryServices
     public interface ICountryService
     {
         Task<List<CountryViewModel>> GetAll();
+        Task<int> GetCount();
         Task<List<CountryViewModel>> GetByStatusTrue();
         Task<CountryViewModel?> GetById(int id);
         Task<CountryViewModel?> Create(CountryViewModel model);

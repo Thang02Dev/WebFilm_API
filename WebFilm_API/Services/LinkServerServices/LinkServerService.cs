@@ -14,7 +14,6 @@ namespace WebFilm_API.Services.LinkServerServices
         {
             _dbContext = dbContext;
         }
-
         public async Task<bool> ChangedStatus(int id)
         {
             var link = await _dbContext.LinkServers.FirstAsync(x => x.Id == id);

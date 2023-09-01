@@ -12,7 +12,10 @@ namespace WebFilm_API.Services.CategoryServices
         {
             _dbContext = dbContext;
         }
-
+        public async Task<int> GetCount()
+        {
+            return await _dbContext.Categories.CountAsync();
+        }
         public async Task<int> ChangedPosition(int id,int newPosition)
         {
             var cate = await _dbContext.Categories.FirstAsync(x => x.Id == id);

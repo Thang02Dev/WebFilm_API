@@ -5,6 +5,7 @@ namespace WebFilm_API.Services.GenreServices
     public interface IGenreService
     {
         Task<List<GenreViewModel>> GetAll();
+        Task<int> GetCount();
         Task<List<GenreViewModel>> GetByStatusTrue();
         Task<GenreViewModel?> GetById(int id);
         Task<GenreViewModel?> Create(GenreViewModel model);

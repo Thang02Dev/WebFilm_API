@@ -14,6 +14,10 @@ namespace WebFilm_API.Services.CountryServices
         {
             _dbContext = dbContext;
         }
+        public async Task<int> GetCount()
+        {
+            return await _dbContext.Countries.CountAsync();
+        }
         public async Task<bool> ChangedStatus(int id)
         {
             var country = await _dbContext.Countries.FirstAsync(x => x.Id == id);
