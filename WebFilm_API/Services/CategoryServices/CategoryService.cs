@@ -97,6 +97,19 @@ namespace WebFilm_API.Services.CategoryServices
             return await query.FirstOrDefaultAsync();
         }
 
+        public async Task<List<CategoryViewModel>> GetByStatusTrue()
+        {
+            var query = from cate in _dbContext.Categories
+                        orderby cate.Name 
+                        where cate.Status == true
+                        select new CategoryViewModel
+                        {
+                            Id = cate.Id,
+                            Name = cate.Name
+                        };
+            return await query.ToListAsync();
+        }
+
         public async Task<CategoryViewModel?> Update(int id, CategoryViewModel model)
         {
             var cate = await _dbContext.Categories.FirstOrDefaultAsync(x => x.Id == id);

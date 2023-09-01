@@ -20,7 +20,21 @@ namespace WebFilm_API.Controllers
             if (rs == null) return NotFound();
             return Ok(rs);
         }
-        [HttpGet("{id:int}")]
+        [HttpGet("{page:int}")]
+        public async Task<IActionResult> GetPagin(int id,int page)
+        {
+            var rs = await _service.Pagination(id,page);
+            if (rs == null) return NotFound();
+            return Ok(rs);
+        }
+        [HttpGet("get-by-movieid/{id:int}")]
+        public async Task<IActionResult> GetGroupByMovieId(int id)
+        {
+            var rs = await _service.GetGroupByMovieId(id);
+            if (rs == null) return NotFound();
+            return Ok(rs);
+        }
+        [HttpGet("get-by-id/{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {
             var rs = await _service.GetById(id);

@@ -21,7 +21,7 @@ namespace WebFilm_API.ViewModels
         [StringLength(250)]
         public string Image { get; set; } = string.Empty;
         [StringLength(250)]
-        public string Slug { get; set; } = string.Empty;
+        public string? Slug { get; set; } = string.Empty;
         public int? CategoryId { get; set; }
         public int? CountryId { get; set; }
         public bool? Hot { get; set; }
@@ -39,5 +39,6 @@ namespace WebFilm_API.ViewModels
         public string? CategoryName { get; set; }
         public List<int> GenreId { get; set; } = new List<int>();
         public List<string> GenreName { get; set; } = new List<string>();
+        public int? CountEpisodes { get; set; }
     }
 }

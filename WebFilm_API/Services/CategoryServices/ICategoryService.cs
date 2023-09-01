@@ -6,6 +6,7 @@ namespace WebFilm_API.Services.CategoryServices
     public interface ICategoryService
     {
         Task<List<CategoryViewModel>> GetAll();
+        Task<List<CategoryViewModel>> GetByStatusTrue();
         Task<CategoryViewModel?> GetById(int id);
         Task<CategoryViewModel?> Create(CategoryViewModel model);
         Task<bool> Delete(int id);

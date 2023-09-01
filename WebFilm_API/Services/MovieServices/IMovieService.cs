@@ -5,6 +5,7 @@ namespace WebFilm_API.Services.MovieServices
     public interface IMovieService
     {
         Task<List<MovieViewModel>> GetAll();
+        Task<List<MovieViewModel>> GetByStatus();
         Task<MovieViewModel?> GetById(int id);
         Task<MovieViewModel?> Create(MovieViewModel model);
         Task<bool> Delete(int id);

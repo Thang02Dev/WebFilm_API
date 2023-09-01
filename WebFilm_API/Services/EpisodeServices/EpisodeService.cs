@@ -71,6 +71,56 @@ namespace WebFilm_API.Services.EpisodeServices
             return await query.FirstOrDefaultAsync();
         }
 
+        public async Task<List<EpisodeViewModel>> GetGroupByMovieId(int movie_id)
+        {
+            var groupedEpisodes = await _dbContext.Episodes.OrderBy(x=>x.Episode_Number)
+                .Where(x=>x.MovieId==movie_id)
+                .GroupBy(e => e.MovieId)
+                .ToListAsync();
+
+            List<EpisodeViewModel> result = new List<EpisodeViewModel>();
+
+            foreach (var group in groupedEpisodes)
+            {
+                foreach (var episode in group)
+                {
+#pragma warning disable CS8629 // Nullable value type may be null.
+                    result.Add(new EpisodeViewModel
+                    {
+                        Id = episode.Id,
+                        MovieId = episode.MovieId,
+                        Link = episode.Link,
+                        Episode_Number = episode.Episode_Number,
+                        LinkServerId = (int)episode.LinkServerId,
+                        ServerName = _dbContext.LinkServers.Single(x=>x.Id==episode.LinkServerId).Name,
+                    });
+#pragma warning restore CS8629 // Nullable value type may be null.
+                }
+            }
+
+            return result;
+        }
+
+        public async Task<EpisodePagin?> Pagination(int movieId,int currentPage)
+        {
+            var pageResults = 10f;
+            var pageCount = Math.Ceiling(_dbContext.Episodes.Where(x=>x.MovieId==movieId).Count() / pageResults);
+
+            var episodes = await GetGroupByMovieId(movieId);
+
+            var result = episodes.Skip((currentPage - 1) * (int)pageResults).Take((int)pageResults).ToList();
+
+            if (result == null) return null;
+
+            var episodePagin = new EpisodePagin
+            {
+                EpisodeViewModels = result,
+                CurrentPage = currentPage,
+                PageCount = (int)pageCount
+            };
+            return episodePagin;
+        }
+
         public async Task<EpisodeViewModel?> Update(int id, EpisodeViewModel model)
         {
             var ep = await _dbContext.Episodes.FirstOrDefaultAsync(x => x.Id == id);

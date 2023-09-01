@@ -88,6 +88,19 @@ namespace WebFilm_API.Services.GenreServices
             return await query.FirstOrDefaultAsync();
         }
 
+        public async Task<List<GenreViewModel>> GetByStatusTrue()
+        {
+            var query = from genre in _dbContext.Genres
+                        orderby genre.Name
+                        where genre.Status == true
+                        select new GenreViewModel
+                        {
+                            Id = genre.Id,
+                            Name = genre.Name,
+                        };
+            return await query.ToListAsync();
+        }
+
         public async Task<GenreViewModel?> Update(int id, GenreViewModel model)
         {
             var genre = await _dbContext.Genres.FirstOrDefaultAsync(x => x.Id == id);

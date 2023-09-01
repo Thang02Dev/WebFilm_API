@@ -85,6 +85,19 @@ namespace WebFilm_API.Services.LinkServerServices
             return await query.FirstOrDefaultAsync();
         }
 
+        public async Task<List<LinkServerViewModel>> GetByStatus()
+        {
+            var query = from link in _dbContext.LinkServers
+                        where link.Status == true
+                        orderby link.Name
+                        select new LinkServerViewModel
+                        {
+                            Id = link.Id,
+                            Name = link.Name,
+                        };
+            return await query.ToListAsync();
+        }
+
         public async Task<LinkServerViewModel?> Update(int id, LinkServerViewModel model)
         {
             var link = await _dbContext.LinkServers.FirstOrDefaultAsync(x => x.Id == id);

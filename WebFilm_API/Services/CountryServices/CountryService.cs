@@ -87,6 +87,19 @@ namespace WebFilm_API.Services.CountryServices
             return await query.FirstOrDefaultAsync();
         }
 
+        public async Task<List<CountryViewModel>> GetByStatusTrue()
+        {
+            var query = from country in _dbContext.Countries
+                        orderby country.Name
+                        where country.Status == true
+                        select new CountryViewModel
+                        {
+                            Id = country.Id,
+                            Name = country.Name,
+                        };
+            return await query.ToListAsync();
+        }
+
         public async Task<CountryViewModel?> Update(int id, CountryViewModel model)
         {
             var country = await _dbContext.Countries.FirstOrDefaultAsync(x => x.Id == id);
