@@ -6,6 +6,8 @@ namespace WebFilm_API.Services.MovieServices
     {
         Task<List<MovieViewModel>> GetAll();
         Task<List<MovieViewModel>> GetByStatus();
+        Task<List<MovieViewModel>> GetByCategorySlug(string cateSlug);
+        Task<List<MovieViewModel>> GetByGenreSlug(string genreSlug);
         Task<int> GetCount();
         Task<MovieViewModel?> GetById(int id);
         Task<MovieViewModel?> Create(MovieViewModel model);

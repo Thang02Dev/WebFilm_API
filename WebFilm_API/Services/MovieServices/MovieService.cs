@@ -105,6 +105,11 @@ namespace WebFilm_API.Services.MovieServices
             {
                 _dbContext.MovieGenres.Remove(mg);
             }
+            foreach (var ep in await _dbContext.Episodes.Where(x=>x.MovieId==movie.Id).ToListAsync())
+            {
+                _dbContext.Episodes.Remove(ep);
+            }
+
             _dbContext.Movies.Remove(movie);
             await _dbContext.SaveChangesAsync();
             return true;
@@ -279,6 +284,51 @@ namespace WebFilm_API.Services.MovieServices
         public async Task<int> GetCount()
         {
             return await _dbContext.Movies.CountAsync();
+        }
+
+        public async Task<List<MovieViewModel>> GetByCategorySlug(string cateSlug)
+        {
+            int take=8;
+            if (cateSlug == "phim-bo") take = 20;
+
+            var query = (from movie in _dbContext.Movies
+                        join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                        where movie.Status == true && cate.Slug == cateSlug.ToLower()
+                        orderby movie.Position
+                        select new MovieViewModel
+                        {
+                            Id = movie.Id,
+                            Title = movie.Title,
+                            Image = movie.Image,
+                            Episode_Number = movie.Episode_Number,
+                            CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                            Subtitle = movie.Subtitle,
+                            Slug = movie.Slug,
+                            Position = movie.Position,
+                            CategoryName = cate.Name
+                        }).Take(take);
+            return await query.ToListAsync();
+        }
+        public async Task<List<MovieViewModel>> GetByGenreSlug(string genreSlug)
+        {
+            var query = (from moviegenre in _dbContext.MovieGenres
+                         join movie in _dbContext.Movies on moviegenre.MovieId equals movie.Id
+                         join genre in _dbContext.Genres on moviegenre.GenreId equals genre.Id
+                         where movie.Status == true && genre.Slug == genreSlug
+                         orderby movie.Position
+                         select new MovieViewModel
+                         {
+                             Id = movie.Id,
+                             Title = movie.Title,
+                             Image = movie.Image,
+                             Episode_Number = movie.Episode_Number,
+                             CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                             Subtitle = movie.Subtitle,
+                             Slug = movie.Slug,
+                             Position = movie.Position,
+                             GenreId = _dbContext.MovieGenres.Where(x => x.MovieId == movie.Id).Select(x => x.GenreId).ToList(),
+                         }).Take(8);
+            return await query.ToListAsync();
         }
     }
 }

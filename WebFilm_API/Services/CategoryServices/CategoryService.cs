@@ -103,12 +103,13 @@ namespace WebFilm_API.Services.CategoryServices
         public async Task<List<CategoryViewModel>> GetByStatusTrue()
         {
             var query = from cate in _dbContext.Categories
-                        orderby cate.Name 
+                        orderby cate.Position 
                         where cate.Status == true
                         select new CategoryViewModel
                         {
                             Id = cate.Id,
-                            Name = cate.Name
+                            Name = cate.Name,
+                            Position = cate.Position
                         };
             return await query.ToListAsync();
         }

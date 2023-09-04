@@ -22,6 +22,20 @@ namespace WebFilm_API.Controllers
             if (rs == null) return NotFound();
             return Ok(rs);
         }
+        [HttpGet("get-by-categoryslug")]
+        public async Task<IActionResult> GetByCategorySlug(string cateSlug)
+        {
+            var rs = await _service.GetByCategorySlug(cateSlug);
+            if (rs == null) return NotFound();
+            return Ok(rs);
+        }
+        [HttpGet("get-by-genreslug")]
+        public async Task<IActionResult> GetByGenreSlug( string genreSlug= "hoat-hinh")
+        {
+            var rs = await _service.GetByGenreSlug(genreSlug);
+            if (rs == null) return NotFound();
+            return Ok(rs);
+        }
         [HttpGet("get-count")]
         public async Task<IActionResult> GetCount()
         {
