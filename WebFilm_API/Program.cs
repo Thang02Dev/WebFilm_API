@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using WebFilm_API.DB;
+using WebFilm_API.Hubs;
 using WebFilm_API.Services.CategoryServices;
 using WebFilm_API.Services.CountryServices;
 using WebFilm_API.Services.EpisodeServices;
@@ -15,6 +16,7 @@ builder.Services.AddDbContext<MyDbContext>(option =>
 );
 
 builder.Services.AddControllers();
+builder.Services.AddSignalR();
 
 builder.Services.AddScoped<ICategoryService,CategoryService>();
 builder.Services.AddScoped<ICountryService,CountryService>();
@@ -27,7 +29,7 @@ builder.Services.AddScoped<IEpisodeService,EpisodeService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddCors(c => c.AddPolicy("AlowOrigin", options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
+builder.Services.AddCors(c => c.AddPolicy("AlowOrigin", options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader().AllowAnyOrigin()));
 
 var app = builder.Build();
 
@@ -37,11 +39,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-app.UseCors(options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+app.UseCors(options => options.AllowAnyMethod().AllowAnyHeader().SetIsOriginAllowed(origin => true).AllowCredentials());
+
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
+app.MapHub<UserHub>("/userhub");
 app.MapControllers();
 
 app.Run();
