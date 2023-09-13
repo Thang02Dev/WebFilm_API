@@ -109,7 +109,8 @@ namespace WebFilm_API.Services.CategoryServices
                         {
                             Id = cate.Id,
                             Name = cate.Name,
-                            Position = cate.Position
+                            Position = cate.Position,
+                            Slug = cate.Slug,
                         };
             return await query.ToListAsync();
         }

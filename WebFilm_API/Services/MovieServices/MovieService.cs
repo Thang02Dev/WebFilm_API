@@ -79,7 +79,9 @@ namespace WebFilm_API.Services.MovieServices
                 Top_View = model.Top_View,
                 Trailer = model.Trailer,
                 Year_Release =model.Year_Release,
-                Tags = model.Tags,               
+                Tags = model.Tags,  
+                Director = model.Director,
+                Performer = model.Performer
             };
             await _dbContext.Movies.AddAsync(movie);
             await _dbContext.SaveChangesAsync();
@@ -148,6 +150,8 @@ namespace WebFilm_API.Services.MovieServices
                             Trailer = movie.Trailer,
                             Year_Release = movie.Year_Release,
                             Tags = movie.Tags,
+                            Director = movie.Director,
+                            Performer = movie.Performer,
                             GenreId = _dbContext.MovieGenres.Where(x => x.MovieId == movie.Id).Select(x=>x.GenreId).ToList(),
                             CountryName = joinCountry.Name,
                             CategoryName = joinCategory.Name,
@@ -192,6 +196,8 @@ namespace WebFilm_API.Services.MovieServices
                             GenreId = _dbContext.MovieGenres.Where(x => x.MovieId == movie.Id).Select(x => x.GenreId).ToList(),
                             CountryName = joinCountry.Name,
                             CategoryName = joinCategory.Name,
+                            Director = movie.Director,
+                            Performer = movie.Performer,
                         };
             var _movie = await query.FirstOrDefaultAsync();
             if (_movie == null) return null;
@@ -246,6 +252,8 @@ namespace WebFilm_API.Services.MovieServices
             movie.Tags = model.Tags;
             movie.Top_View = model.Top_View;
             movie.Hot = model.Hot;
+            movie.Performer = model.Performer;
+            movie.Director = model.Director;
             await _dbContext.SaveChangesAsync();
 
             var rs = _dbContext.MovieGenres.Where(x => x.MovieId == id).ToList();
@@ -328,6 +336,28 @@ namespace WebFilm_API.Services.MovieServices
                              Position = movie.Position,
                              GenreId = _dbContext.MovieGenres.Where(x => x.MovieId == movie.Id).Select(x => x.GenreId).ToList(),
                          }).Take(8);
+            return await query.ToListAsync();
+        }
+
+        public async Task<List<MovieViewModel>> GetByHot()
+        {
+            var query = (from moviegenre in _dbContext.MovieGenres
+                         join movie in _dbContext.Movies on moviegenre.MovieId equals movie.Id
+                         join genre in _dbContext.Genres on moviegenre.GenreId equals genre.Id
+                         where movie.Status == true && movie.Hot == true
+                         orderby movie.Position
+                         select new MovieViewModel
+                         {
+                             Id = movie.Id,
+                             Title = movie.Title,
+                             Image = movie.Image,
+                             Episode_Number = movie.Episode_Number,
+                             CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                             Subtitle = movie.Subtitle,
+                             Slug = movie.Slug,
+                             Position = movie.Position,
+                             GenreId = _dbContext.MovieGenres.Where(x => x.MovieId == movie.Id).Select(x => x.GenreId).ToList(),
+                         }).Take(15);
             return await query.ToListAsync();
         }
     }

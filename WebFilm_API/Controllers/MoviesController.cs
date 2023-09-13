@@ -42,6 +42,13 @@ namespace WebFilm_API.Controllers
             var rs = await _service.GetCount();
             return Ok(rs);
         }
+        [HttpGet("get-by-hot")]
+        public async Task<IActionResult> GetByHot()
+        {
+            var rs = await _service.GetByHot();
+            if (rs == null) return NotFound();
+            return Ok(rs);
+        }
         [HttpGet("get-by-status")]
         public async Task<IActionResult> GetByStatus()
         {

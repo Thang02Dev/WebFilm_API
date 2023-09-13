@@ -39,7 +39,8 @@ namespace WebFilm_API.Models
         public bool? Top_View { get; set; }
         public int? Episode_Number { get; set; }
         public int? Position { get; set; }
-
+        public string? Director { get; set; } = string.Empty;
+        public string? Performer { get; set; } = string.Empty;
         public List<MovieGenre> MovieGenres { get; set; } = new List<MovieGenre>();
     }
 }

@@ -35,8 +35,10 @@ namespace WebFilm_API.ViewModels
         public bool? Top_View { get; set; }
         public int? Episode_Number { get; set; }
         public int? Position { get; set; }
-        public string? CountryName { get; set; }
-        public string? CategoryName { get; set; }
+        public string? Director { get; set; } = string.Empty;
+        public string? Performer { get; set; } = string.Empty;
+        public string? CountryName { get; set; } = string.Empty;
+        public string? CategoryName { get; set; } = string.Empty;
         public List<int> GenreId { get; set; } = new List<int>();
         public List<string> GenreName { get; set; } = new List<string>();
         public int? CountEpisodes { get; set; }
