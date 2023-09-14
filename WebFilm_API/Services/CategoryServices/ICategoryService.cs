@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc.RazorPages;
-using WebFilm_API.ViewModels;
+﻿using WebFilm_API.ViewModels;
 
 namespace WebFilm_API.Services.CategoryServices
 {
@@ -9,6 +8,7 @@ namespace WebFilm_API.Services.CategoryServices
         Task<int> GetCount();
         Task<List<CategoryViewModel>> GetByStatusTrue();
         Task<CategoryViewModel?> GetById(int id);
+        Task<CategoryViewModel?> GetBySlug(string slug);
         Task<CategoryViewModel?> Create(CategoryViewModel model);
         Task<bool> Delete(int id);
         Task<CategoryViewModel?> Update(int id, CategoryViewModel model);

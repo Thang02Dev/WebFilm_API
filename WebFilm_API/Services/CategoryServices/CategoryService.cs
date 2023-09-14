@@ -126,5 +126,18 @@ namespace WebFilm_API.Services.CategoryServices
             await _dbContext.SaveChangesAsync();
             return model;
         }
+
+        public async Task<CategoryViewModel?> GetBySlug(string slug)
+        {
+            var query = from cate in _dbContext.Categories
+                        where cate.Slug == slug
+                        select new CategoryViewModel
+                        {
+                            Id = cate.Id,
+                            Name = cate.Name,
+                            
+                        };
+            return await query.FirstOrDefaultAsync();
+        }
     }
 }

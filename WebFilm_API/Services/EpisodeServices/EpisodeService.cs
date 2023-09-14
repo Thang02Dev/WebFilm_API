@@ -25,6 +25,11 @@ namespace WebFilm_API.Services.EpisodeServices
             };
             await _dbContext.Episodes.AddAsync(ep);
             await _dbContext.SaveChangesAsync();
+
+            var movie = await _dbContext.Movies.SingleAsync(x => x.Id == ep.MovieId);
+            movie.Updated_Date = DateTime.Now;
+            await _dbContext.SaveChangesAsync();
+
             return model;
         }
 

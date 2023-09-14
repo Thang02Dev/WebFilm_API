@@ -42,6 +42,13 @@ namespace WebFilm_API.Controllers
             if (rs == null) return NotFound();
             return Ok(rs);
         }
+        [HttpGet("get-by-slug/{slug}")]
+        public async Task<IActionResult> GetById(string slug)
+        {
+            var rs = await _service.GetBySlug(slug);
+            if (rs == null) return NotFound();
+            return Ok(rs);
+        }
         [HttpPost]
         public async Task<IActionResult> Create(CategoryViewModel model)
         {

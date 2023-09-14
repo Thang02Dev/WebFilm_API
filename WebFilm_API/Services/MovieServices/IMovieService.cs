@@ -7,8 +7,8 @@ namespace WebFilm_API.Services.MovieServices
         Task<List<MovieViewModel>> GetAll();
         Task<List<MovieViewModel>> GetByStatus();
         Task<List<MovieViewModel>> GetByHot();
-
         Task<List<MovieViewModel>> GetByCategorySlug(string cateSlug);
+        Task<List<MovieViewModel>> GetByCategoryId(int cateId);
         Task<List<MovieViewModel>> GetByGenreSlug(string genreSlug);
         Task<int> GetCount();
         Task<MovieViewModel?> GetById(int id);
@@ -21,5 +21,6 @@ namespace WebFilm_API.Services.MovieServices
         Task<int> ChangedPosition(int id, int newPosition);
         Task<bool> ChangedTopView(int id);
         Task<MoviePagin?> Pagination(int currentPage);
+        Task<MoviePagin?> Pagination(int currentPage, int cateId);
     }
 }
