@@ -15,6 +15,14 @@ namespace WebFilm_API.Controllers
         {
             _service = service;
         }
+
+        [HttpGet("pagin-filter/{page:int}")]
+        public async Task<IActionResult> GetPagin(int page, int cateId, int order, int genreId, int countryId, int year)
+        {
+            var rs = await _service.PaginFilter(page, cateId, order, genreId, countryId, year);
+            if (rs == null) return NotFound();
+            return Ok(rs);
+        }
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {

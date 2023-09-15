@@ -22,5 +22,9 @@ namespace WebFilm_API.Services.MovieServices
         Task<bool> ChangedTopView(int id);
         Task<MoviePagin?> Pagination(int currentPage);
         Task<MoviePagin?> Pagination(int currentPage, int cateId);
+        Task<List<MovieViewModel>?> GetFilter(int cateId,int order,int genreId, int countryId, int year);
+        Task<MoviePagin?> PaginFilter(int currentPage, int cateId, int order, int genreId, int countryId, int year);
+
+
     }
 }
