@@ -3,7 +3,6 @@ using WebFilm_API.Commons;
 using WebFilm_API.DB;
 using WebFilm_API.Models;
 using WebFilm_API.ViewModels;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace WebFilm_API.Services.MovieServices
 {
@@ -366,7 +365,7 @@ namespace WebFilm_API.Services.MovieServices
 
         }
 
-        public async Task<MoviePagin?> Pagination(int currentPage, int cateId)
+        public async Task<MoviePagin?> PaginationByCate(int currentPage, int cateId)
         {
             var pageResults = 24f;
             var pageCount = Math.Ceiling(_dbContext.Movies.Where(x=>x.CategoryId==cateId).Count() / pageResults);
@@ -388,27 +387,76 @@ namespace WebFilm_API.Services.MovieServices
 
         public async Task<List<MovieViewModel>> GetByCategoryId(int cateId)
         {
-            var query = from movie in _dbContext.Movies
-                        join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
-                        where movie.Status == true && cate.Id == cateId
-                        orderby movie.Updated_Date descending
-                        select new MovieViewModel
-                        {
-                            Id = movie.Id,
-                            Title = movie.Title,
-                            Image = movie.Image,
-                            Episode_Number = movie.Episode_Number,
-                            CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
-                            Subtitle = movie.Subtitle,
-                            Slug = movie.Slug,
-                            Position = movie.Position,
-                            CategoryName = cate.Name,
-                            Updated_Date =movie.Updated_Date,
-                        };
-            return await query.ToListAsync();
-        }
+            var category = await _dbContext.Categories.FirstAsync(x => x.Id == cateId);
+            if(category.Slug == "phim-le")
+            {
+                var query = from movie in _dbContext.Movies
+                            join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                            where movie.Status == true && cate.Id == cateId || cate.Slug == "phim-chieu-rap"
+                            orderby movie.Updated_Date descending
+                            select new MovieViewModel
+                            {
+                                Id = movie.Id,
+                                Title = movie.Title,
+                                Image = movie.Image,
+                                Episode_Number = movie.Episode_Number,
+                                CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                Subtitle = movie.Subtitle,
+                                Slug = movie.Slug,
+                                Position = movie.Position,
+                                CategoryName = cate.Name,
+                                Updated_Date = movie.Updated_Date,
+                            };
+                return await query.ToListAsync();
+            }
+            else
+            {
 
-        public async Task<List<MovieViewModel>?> GetFilter(int cateId,int order, int genreId, int countryId, int year)
+                var query = from movie in _dbContext.Movies
+                            join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                            where movie.Status == true && cate.Id == cateId
+                            orderby movie.Updated_Date descending
+                            select new MovieViewModel
+                            {
+                                Id = movie.Id,
+                                Title = movie.Title,
+                                Image = movie.Image,
+                                Episode_Number = movie.Episode_Number,
+                                CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                Subtitle = movie.Subtitle,
+                                Slug = movie.Slug,
+                                Position = movie.Position,
+                                CategoryName = cate.Name,
+                                Updated_Date = movie.Updated_Date,
+                            };
+                return await query.ToListAsync();
+            }
+        }
+        public async Task<List<MovieViewModel>> GetByGenreId(int genreId)
+        {
+            var query = (from moviegenre in _dbContext.MovieGenres
+                         join movie in _dbContext.Movies on moviegenre.MovieId equals movie.Id
+                         join genre in _dbContext.Genres on moviegenre.GenreId equals genre.Id
+                         where movie.Status == true && genre.Id == genreId
+                         select new MovieViewModel
+                         {
+                             Id = movie.Id,
+                             Title = movie.Title,
+                             Image = movie.Image,
+                             Episode_Number = movie.Episode_Number,
+                             CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                             Subtitle = movie.Subtitle,
+                             Slug = movie.Slug,
+                             Position = movie.Position,
+                             Updated_Date = movie.Updated_Date,
+                             GenreId = _dbContext.MovieGenres.Where(x => x.MovieId == movie.Id).Select(x => x.GenreId).ToList(),
+                         }).GroupBy(m => m.Id)
+                            .Select(group => group.First()).Take(15);
+            var result = await query.ToListAsync();
+            result = result.OrderByDescending(m => m.Updated_Date).ToList();
+            return result;
+        }
+        public async Task<List<MovieViewModel>?> GetFilterByCate(int cateId,int order, int genreId, int countryId, int year)
         {
             
             if(genreId != 0 && countryId != 0 && year != 0)
@@ -1411,12 +1459,12 @@ namespace WebFilm_API.Services.MovieServices
             return null;
         }
 
-        public async Task<MoviePagin?> PaginFilter(int currentPage, int cateId, int order, int genreId, int countryId, int year)
+        public async Task<MoviePagin?> PaginFilterByCate(int currentPage, int cateId, int order, int genreId, int countryId, int year)
         {
             var pageResults = 24f;
             var pageCount = Math.Ceiling(_dbContext.Movies.Where(x => x.CategoryId == cateId).Count() / pageResults);
 
-            var movies = await GetFilter(cateId, order, genreId, countryId, year);
+            var movies = await GetFilterByCate(cateId, order, genreId, countryId, year);
 
             if (movies == null) return null;
 
@@ -1431,6 +1479,1181 @@ namespace WebFilm_API.Services.MovieServices
                 PageCount = (int)pageCount
             };
             return moviePagin;
+        }
+
+        public async Task<MoviePagin?> PaginationByGenre(int currentPage, int genreId)
+        {
+            var pageResults = 24f;
+
+            var pageCount = Math.Ceiling(_dbContext.MovieGenres.Where(x => x.GenreId == genreId).GroupBy(x=>x.MovieId).Count() / pageResults);
+
+            var movies = await GetByGenreId(genreId);
+
+            var result = movies.Skip((currentPage - 1) * (int)pageResults).Take((int)pageResults).ToList();
+
+            if (result == null) return null;
+
+            var moviePagin = new MoviePagin
+            {
+                MovieViewModels = result,
+                CurrentPage = currentPage,
+                PageCount = (int)pageCount
+            };
+            return moviePagin;
+        }
+
+        public async Task<List<MovieViewModel>?> GetFilter(int order, int genreId, int countryId, int year)
+        {
+            if (genreId != 0 && countryId != 0 && year != 0)
+            {
+                if (order == 1)
+                {
+                    var query = (from mg in _dbContext.MovieGenres
+                                 join movie in _dbContext.Movies on mg.MovieId equals movie.Id
+                                 join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                                 where movie.Status == true && mg.GenreId == genreId
+                                     && movie.CountryId == countryId && movie.Year_Release == year.ToString()
+                                 select new MovieViewModel
+                                 {
+                                     Id = movie.Id,
+                                     Title = movie.Title,
+                                     Image = movie.Image,
+                                     Episode_Number = movie.Episode_Number,
+                                     CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                     Subtitle = movie.Subtitle,
+                                     Slug = movie.Slug,
+                                     Position = movie.Position,
+                                     CategoryName = cate.Name,
+                                     Updated_Date = movie.Updated_Date,
+                                 }).GroupBy(m => m.Id)
+                            .Select(group => group.First());
+                    var result = await query.ToListAsync();
+                    result = result.OrderByDescending(m => m.Created_Date).ToList();
+                    return result;
+                }
+                else if (order == 2)
+                {
+                    var query = (from mg in _dbContext.MovieGenres
+                                 join movie in _dbContext.Movies on mg.MovieId equals movie.Id
+                                 join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                                 where movie.Status == true && mg.GenreId == genreId
+                                     && movie.CountryId == countryId && movie.Year_Release == year.ToString()
+                                 select new MovieViewModel
+                                 {
+                                     Id = movie.Id,
+                                     Title = movie.Title,
+                                     Image = movie.Image,
+                                     Episode_Number = movie.Episode_Number,
+                                     CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                     Subtitle = movie.Subtitle,
+                                     Slug = movie.Slug,
+                                     Position = movie.Position,
+                                     CategoryName = cate.Name,
+                                     Updated_Date = movie.Updated_Date,
+                                 }).GroupBy(m => m.Id)
+                            .Select(group => group.First());
+                    var result = await query.ToListAsync();
+                    result = result.OrderByDescending(m => m.Year_Release).ToList();
+                    return result;
+                }
+                else if (order == 3)
+                {
+                    var query = (from mg in _dbContext.MovieGenres
+                                 join movie in _dbContext.Movies on mg.MovieId equals movie.Id
+                                 join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                                 where movie.Status == true && mg.GenreId == genreId
+                                     && movie.CountryId == countryId && movie.Year_Release == year.ToString()
+                                 select new MovieViewModel
+                                 {
+                                     Id = movie.Id,
+                                     Title = movie.Title,
+                                     Image = movie.Image,
+                                     Episode_Number = movie.Episode_Number,
+                                     CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                     Subtitle = movie.Subtitle,
+                                     Slug = movie.Slug,
+                                     Position = movie.Position,
+                                     CategoryName = cate.Name,
+                                     Updated_Date = movie.Updated_Date,
+                                 }).GroupBy(m => m.Id)
+                            .Select(group => group.First());
+                    var result = await query.ToListAsync();
+                    result = result.OrderBy(m => m.Title).ToList();
+                    return result;
+                }
+                else if (order == 4)
+                {
+                    var query = (from mg in _dbContext.MovieGenres
+                                 join movie in _dbContext.Movies on mg.MovieId equals movie.Id
+                                 join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                                 where movie.Status == true  && mg.GenreId == genreId
+                                     && movie.CountryId == countryId && movie.Year_Release == year.ToString()
+                                 select new MovieViewModel
+                                 {
+                                     Id = movie.Id,
+                                     Title = movie.Title,
+                                     Image = movie.Image,
+                                     Episode_Number = movie.Episode_Number,
+                                     CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                     Subtitle = movie.Subtitle,
+                                     Slug = movie.Slug,
+                                     Position = movie.Position,
+                                     CategoryName = cate.Name,
+                                     Updated_Date = movie.Updated_Date,
+                                 }).GroupBy(m => m.Id)
+                            .Select(group => group.First());
+                    return await query.ToListAsync();
+                }
+                else
+                {
+                    var query = (from mg in _dbContext.MovieGenres
+                                 join movie in _dbContext.Movies on mg.MovieId equals movie.Id
+                                 join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                                 where movie.Status == true  && mg.GenreId == genreId
+                                     && movie.CountryId == countryId && movie.Year_Release == year.ToString()
+                                 select new MovieViewModel
+                                 {
+                                     Id = movie.Id,
+                                     Title = movie.Title,
+                                     Image = movie.Image,
+                                     Episode_Number = movie.Episode_Number,
+                                     CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                     Subtitle = movie.Subtitle,
+                                     Slug = movie.Slug,
+                                     Position = movie.Position,
+                                     CategoryName = cate.Name,
+                                     Updated_Date = movie.Updated_Date,
+                                 }).GroupBy(m => m.Id)
+                            .Select(group => group.First());
+                    var result = await query.ToListAsync();
+                    result = result.OrderByDescending(m => m.Updated_Date).ToList();
+                    return result;
+                }
+
+            }
+            else if (genreId != 0 && countryId != 0 && year == 0)
+            {
+                if (order == 1)
+                {
+                    var query = (from mg in _dbContext.MovieGenres
+                                 join movie in _dbContext.Movies on mg.MovieId equals movie.Id
+                                 join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                                 where movie.Status == true && mg.GenreId == genreId
+                                     && movie.CountryId == countryId
+                                 select new MovieViewModel
+                                 {
+                                     Id = movie.Id,
+                                     Title = movie.Title,
+                                     Image = movie.Image,
+                                     Episode_Number = movie.Episode_Number,
+                                     CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                     Subtitle = movie.Subtitle,
+                                     Slug = movie.Slug,
+                                     Position = movie.Position,
+                                     CategoryName = cate.Name,
+                                     Updated_Date = movie.Updated_Date,
+                                 }).GroupBy(m => m.Id)
+                            .Select(group => group.First());
+                    var result = await query.ToListAsync();
+                    result = result.OrderByDescending(m => m.Created_Date).ToList();
+                    return result;
+                }
+                else if (order == 2)
+                {
+                    var query = (from mg in _dbContext.MovieGenres
+                                 join movie in _dbContext.Movies on mg.MovieId equals movie.Id
+                                 join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                                 where movie.Status == true  && mg.GenreId == genreId
+                                     && movie.CountryId == countryId
+                                 select new MovieViewModel
+                                 {
+                                     Id = movie.Id,
+                                     Title = movie.Title,
+                                     Image = movie.Image,
+                                     Episode_Number = movie.Episode_Number,
+                                     CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                     Subtitle = movie.Subtitle,
+                                     Slug = movie.Slug,
+                                     Position = movie.Position,
+                                     CategoryName = cate.Name,
+                                     Updated_Date = movie.Updated_Date,
+                                 }).GroupBy(m => m.Id)
+                            .Select(group => group.First());
+                    var result = await query.ToListAsync();
+                    result = result.OrderByDescending(m => m.Year_Release).ToList();
+                    return result;
+                }
+                else if (order == 3)
+                {
+                    var query = (from mg in _dbContext.MovieGenres
+                                 join movie in _dbContext.Movies on mg.MovieId equals movie.Id
+                                 join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                                 where movie.Status == true && mg.GenreId == genreId
+                                     && movie.CountryId == countryId
+                                 select new MovieViewModel
+                                 {
+                                     Id = movie.Id,
+                                     Title = movie.Title,
+                                     Image = movie.Image,
+                                     Episode_Number = movie.Episode_Number,
+                                     CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                     Subtitle = movie.Subtitle,
+                                     Slug = movie.Slug,
+                                     Position = movie.Position,
+                                     CategoryName = cate.Name,
+                                     Updated_Date = movie.Updated_Date,
+                                 }).GroupBy(m => m.Id)
+                            .Select(group => group.First());
+                    var result = await query.ToListAsync();
+                    result = result.OrderBy(m => m.Title).ToList();
+                    return result;
+                }
+                else if (order == 4)
+                {
+                    var query = (from mg in _dbContext.MovieGenres
+                                 join movie in _dbContext.Movies on mg.MovieId equals movie.Id
+                                 join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                                 where movie.Status == true && mg.GenreId == genreId
+                                     && movie.CountryId == countryId
+                                 select new MovieViewModel
+                                 {
+                                     Id = movie.Id,
+                                     Title = movie.Title,
+                                     Image = movie.Image,
+                                     Episode_Number = movie.Episode_Number,
+                                     CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                     Subtitle = movie.Subtitle,
+                                     Slug = movie.Slug,
+                                     Position = movie.Position,
+                                     CategoryName = cate.Name,
+                                     Updated_Date = movie.Updated_Date,
+                                 }).GroupBy(m => m.Id)
+                            .Select(group => group.First());
+                    return await query.ToListAsync();
+                }
+                else
+                {
+                    var query = (from mg in _dbContext.MovieGenres
+                                 join movie in _dbContext.Movies on mg.MovieId equals movie.Id
+                                 join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                                 where movie.Status == true && mg.GenreId == genreId
+                                     && movie.CountryId == countryId
+                                 select new MovieViewModel
+                                 {
+                                     Id = movie.Id,
+                                     Title = movie.Title,
+                                     Image = movie.Image,
+                                     Episode_Number = movie.Episode_Number,
+                                     CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                     Subtitle = movie.Subtitle,
+                                     Slug = movie.Slug,
+                                     Position = movie.Position,
+                                     CategoryName = cate.Name,
+                                     Updated_Date = movie.Updated_Date,
+                                 }).GroupBy(m => m.Id)
+                                                .Select(group => group.First());
+                    var result = await query.ToListAsync();
+                    result = result.OrderByDescending(m => m.Updated_Date).ToList();
+                    return result;
+                }
+            }
+            else if (genreId != 0 && countryId == 0 && year != 0)
+            {
+                if (order == 1)
+                {
+                    var query = (from mg in _dbContext.MovieGenres
+                                 join movie in _dbContext.Movies on mg.MovieId equals movie.Id
+                                 join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                                 where movie.Status == true  && mg.GenreId == genreId
+                                    && movie.Year_Release == year.ToString()
+                                 select new MovieViewModel
+                                 {
+                                     Id = movie.Id,
+                                     Title = movie.Title,
+                                     Image = movie.Image,
+                                     Episode_Number = movie.Episode_Number,
+                                     CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                     Subtitle = movie.Subtitle,
+                                     Slug = movie.Slug,
+                                     Position = movie.Position,
+                                     CategoryName = cate.Name,
+                                     Updated_Date = movie.Updated_Date,
+                                 }).GroupBy(m => m.Id)
+                            .Select(group => group.First());
+                    var result = await query.ToListAsync();
+                    result = result.OrderByDescending(m => m.Created_Date).ToList();
+                    return result;
+                }
+                else if (order == 2)
+                {
+                    var query = (from mg in _dbContext.MovieGenres
+                                 join movie in _dbContext.Movies on mg.MovieId equals movie.Id
+                                 join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                                 where movie.Status == true  && mg.GenreId == genreId
+                                     && movie.Year_Release == year.ToString()
+                                 select new MovieViewModel
+                                 {
+                                     Id = movie.Id,
+                                     Title = movie.Title,
+                                     Image = movie.Image,
+                                     Episode_Number = movie.Episode_Number,
+                                     CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                     Subtitle = movie.Subtitle,
+                                     Slug = movie.Slug,
+                                     Position = movie.Position,
+                                     CategoryName = cate.Name,
+                                     Updated_Date = movie.Updated_Date,
+                                 }).GroupBy(m => m.Id)
+                            .Select(group => group.First());
+                    var result = await query.ToListAsync();
+                    result = result.OrderByDescending(m => m.Year_Release).ToList();
+                    return result;
+                }
+                else if (order == 3)
+                {
+                    var query = (from mg in _dbContext.MovieGenres
+                                 join movie in _dbContext.Movies on mg.MovieId equals movie.Id
+                                 join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                                 where movie.Status == true && mg.GenreId == genreId
+                                      && movie.Year_Release == year.ToString()
+                                 select new MovieViewModel
+                                 {
+                                     Id = movie.Id,
+                                     Title = movie.Title,
+                                     Image = movie.Image,
+                                     Episode_Number = movie.Episode_Number,
+                                     CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                     Subtitle = movie.Subtitle,
+                                     Slug = movie.Slug,
+                                     Position = movie.Position,
+                                     CategoryName = cate.Name,
+                                     Updated_Date = movie.Updated_Date,
+                                 }).GroupBy(m => m.Id)
+                            .Select(group => group.First());
+                    var result = await query.ToListAsync();
+                    result = result.OrderBy(m => m.Title).ToList();
+                    return result;
+                }
+                else if (order == 4)
+                {
+                    var query = (from mg in _dbContext.MovieGenres
+                                 join movie in _dbContext.Movies on mg.MovieId equals movie.Id
+                                 join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                                 where movie.Status == true  && mg.GenreId == genreId
+                                     && movie.Year_Release == year.ToString()
+                                 select new MovieViewModel
+                                 {
+                                     Id = movie.Id,
+                                     Title = movie.Title,
+                                     Image = movie.Image,
+                                     Episode_Number = movie.Episode_Number,
+                                     CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                     Subtitle = movie.Subtitle,
+                                     Slug = movie.Slug,
+                                     Position = movie.Position,
+                                     CategoryName = cate.Name,
+                                     Updated_Date = movie.Updated_Date,
+                                 }).GroupBy(m => m.Id)
+                            .Select(group => group.First());
+                    return await query.ToListAsync();
+                }
+                else
+                {
+                    var query = (from mg in _dbContext.MovieGenres
+                                 join movie in _dbContext.Movies on mg.MovieId equals movie.Id
+                                 join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                                 where movie.Status == true && mg.GenreId == genreId
+                                    && movie.Year_Release == year.ToString()
+                                 select new MovieViewModel
+                                 {
+                                     Id = movie.Id,
+                                     Title = movie.Title,
+                                     Image = movie.Image,
+                                     Episode_Number = movie.Episode_Number,
+                                     CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                     Subtitle = movie.Subtitle,
+                                     Slug = movie.Slug,
+                                     Position = movie.Position,
+                                     CategoryName = cate.Name,
+                                     Updated_Date = movie.Updated_Date,
+                                 }).GroupBy(m => m.Id)
+                            .Select(group => group.First());
+                    var result = await query.ToListAsync();
+                    result = result.OrderByDescending(m => m.Updated_Date).ToList();
+                    return result;
+                }
+            }
+            else if (genreId == 0 && countryId != 0 && year != 0)
+            {
+                if (order == 1)
+                {
+                    var query = (from mg in _dbContext.MovieGenres
+                                 join movie in _dbContext.Movies on mg.MovieId equals movie.Id
+                                 join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                                 where movie.Status == true 
+                                     && movie.CountryId == countryId && movie.Year_Release == year.ToString()
+                                 select new MovieViewModel
+                                 {
+                                     Id = movie.Id,
+                                     Title = movie.Title,
+                                     Image = movie.Image,
+                                     Episode_Number = movie.Episode_Number,
+                                     CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                     Subtitle = movie.Subtitle,
+                                     Slug = movie.Slug,
+                                     Position = movie.Position,
+                                     CategoryName = cate.Name,
+                                     Updated_Date = movie.Updated_Date,
+                                 }).GroupBy(m => m.Id)
+                            .Select(group => group.First());
+                    var result = await query.ToListAsync();
+                    result = result.OrderByDescending(m => m.Created_Date).ToList();
+                    return result;
+                }
+                else if (order == 2)
+                {
+                    var query = (from mg in _dbContext.MovieGenres
+                                 join movie in _dbContext.Movies on mg.MovieId equals movie.Id
+                                 join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                                 where movie.Status == true 
+                                     && movie.CountryId == countryId && movie.Year_Release == year.ToString()
+                                 select new MovieViewModel
+                                 {
+                                     Id = movie.Id,
+                                     Title = movie.Title,
+                                     Image = movie.Image,
+                                     Episode_Number = movie.Episode_Number,
+                                     CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                     Subtitle = movie.Subtitle,
+                                     Slug = movie.Slug,
+                                     Position = movie.Position,
+                                     CategoryName = cate.Name,
+                                     Updated_Date = movie.Updated_Date,
+                                 }).GroupBy(m => m.Id)
+                            .Select(group => group.First());
+                    var result = await query.ToListAsync();
+                    result = result.OrderByDescending(m => m.Year_Release).ToList();
+                    return result;
+                }
+                else if (order == 3)
+                {
+                    var query = (from mg in _dbContext.MovieGenres
+                                 join movie in _dbContext.Movies on mg.MovieId equals movie.Id
+                                 join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                                 where movie.Status == true 
+                                     && movie.CountryId == countryId && movie.Year_Release == year.ToString()
+                                 select new MovieViewModel
+                                 {
+                                     Id = movie.Id,
+                                     Title = movie.Title,
+                                     Image = movie.Image,
+                                     Episode_Number = movie.Episode_Number,
+                                     CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                     Subtitle = movie.Subtitle,
+                                     Slug = movie.Slug,
+                                     Position = movie.Position,
+                                     CategoryName = cate.Name,
+                                     Updated_Date = movie.Updated_Date,
+                                 }).GroupBy(m => m.Id)
+                            .Select(group => group.First());
+                    var result = await query.ToListAsync();
+                    result = result.OrderBy(m => m.Title).ToList();
+                    return result;
+                }
+                else if (order == 4)
+                {
+                    var query = (from mg in _dbContext.MovieGenres
+                                 join movie in _dbContext.Movies on mg.MovieId equals movie.Id
+                                 join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                                 where movie.Status == true
+                                     && movie.CountryId == countryId && movie.Year_Release == year.ToString()
+                                 select new MovieViewModel
+                                 {
+                                     Id = movie.Id,
+                                     Title = movie.Title,
+                                     Image = movie.Image,
+                                     Episode_Number = movie.Episode_Number,
+                                     CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                     Subtitle = movie.Subtitle,
+                                     Slug = movie.Slug,
+                                     Position = movie.Position,
+                                     CategoryName = cate.Name,
+                                     Updated_Date = movie.Updated_Date,
+                                 }).GroupBy(m => m.Id)
+                            .Select(group => group.First());
+                    return await query.ToListAsync();
+                }
+                else
+                {
+                    var query = (from mg in _dbContext.MovieGenres
+                                 join movie in _dbContext.Movies on mg.MovieId equals movie.Id
+                                 join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                                 where movie.Status == true 
+                                     && movie.CountryId == countryId && movie.Year_Release == year.ToString()
+                                 select new MovieViewModel
+                                 {
+                                     Id = movie.Id,
+                                     Title = movie.Title,
+                                     Image = movie.Image,
+                                     Episode_Number = movie.Episode_Number,
+                                     CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                     Subtitle = movie.Subtitle,
+                                     Slug = movie.Slug,
+                                     Position = movie.Position,
+                                     CategoryName = cate.Name,
+                                     Updated_Date = movie.Updated_Date,
+                                 }).GroupBy(m => m.Id)
+                            .Select(group => group.First());
+                    var result = await query.ToListAsync();
+                    result = result.OrderByDescending(m => m.Updated_Date).ToList();
+                    return result;
+                }
+            }
+            else if (genreId != 0 && countryId == 0 && year == 0)
+            {
+                if (order == 1)
+                {
+                    var query = (from mg in _dbContext.MovieGenres
+                                 join movie in _dbContext.Movies on mg.MovieId equals movie.Id
+                                 join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                                 where movie.Status == true  && mg.GenreId == genreId
+                                 select new MovieViewModel
+                                 {
+                                     Id = movie.Id,
+                                     Title = movie.Title,
+                                     Image = movie.Image,
+                                     Episode_Number = movie.Episode_Number,
+                                     CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                     Subtitle = movie.Subtitle,
+                                     Slug = movie.Slug,
+                                     Position = movie.Position,
+                                     CategoryName = cate.Name,
+                                     Updated_Date = movie.Updated_Date,
+                                 }).GroupBy(m => m.Id)
+                            .Select(group => group.First());
+                    var result = await query.ToListAsync();
+                    result = result.OrderByDescending(m => m.Created_Date).ToList();
+                    return result;
+                }
+                else if (order == 2)
+                {
+                    var query = (from mg in _dbContext.MovieGenres
+                                 join movie in _dbContext.Movies on mg.MovieId equals movie.Id
+                                 join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                                 where movie.Status == true  && mg.GenreId == genreId
+
+                                 select new MovieViewModel
+                                 {
+                                     Id = movie.Id,
+                                     Title = movie.Title,
+                                     Image = movie.Image,
+                                     Episode_Number = movie.Episode_Number,
+                                     CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                     Subtitle = movie.Subtitle,
+                                     Slug = movie.Slug,
+                                     Position = movie.Position,
+                                     CategoryName = cate.Name,
+                                     Updated_Date = movie.Updated_Date,
+                                 }).GroupBy(m => m.Id)
+                            .Select(group => group.First());
+                    var result = await query.ToListAsync();
+                    result = result.OrderByDescending(m => m.Year_Release).ToList();
+                    return result;
+                }
+                else if (order == 3)
+                {
+                    var query = (from mg in _dbContext.MovieGenres
+                                 join movie in _dbContext.Movies on mg.MovieId equals movie.Id
+                                 join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                                 where movie.Status == true && mg.GenreId == genreId
+
+                                 select new MovieViewModel
+                                 {
+                                     Id = movie.Id,
+                                     Title = movie.Title,
+                                     Image = movie.Image,
+                                     Episode_Number = movie.Episode_Number,
+                                     CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                     Subtitle = movie.Subtitle,
+                                     Slug = movie.Slug,
+                                     Position = movie.Position,
+                                     CategoryName = cate.Name,
+                                     Updated_Date = movie.Updated_Date,
+                                 }).GroupBy(m => m.Id)
+                            .Select(group => group.First());
+                    var result = await query.ToListAsync();
+                    result = result.OrderBy(m => m.Title).ToList();
+                    return result;
+                }
+                else if (order == 4)
+                {
+                    var query = (from mg in _dbContext.MovieGenres
+                                 join movie in _dbContext.Movies on mg.MovieId equals movie.Id
+                                 join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                                 where movie.Status == true  && mg.GenreId == genreId
+
+                                 select new MovieViewModel
+                                 {
+                                     Id = movie.Id,
+                                     Title = movie.Title,
+                                     Image = movie.Image,
+                                     Episode_Number = movie.Episode_Number,
+                                     CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                     Subtitle = movie.Subtitle,
+                                     Slug = movie.Slug,
+                                     Position = movie.Position,
+                                     CategoryName = cate.Name,
+                                     Updated_Date = movie.Updated_Date,
+                                 }).GroupBy(m => m.Id)
+                            .Select(group => group.First());
+                    return await query.ToListAsync();
+                }
+                else
+                {
+                    var query = (from mg in _dbContext.MovieGenres
+                                 join movie in _dbContext.Movies on mg.MovieId equals movie.Id
+                                 join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                                 where movie.Status == true && mg.GenreId == genreId
+                                 select new MovieViewModel
+                                 {
+                                     Id = movie.Id,
+                                     Title = movie.Title,
+                                     Image = movie.Image,
+                                     Episode_Number = movie.Episode_Number,
+                                     CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                     Subtitle = movie.Subtitle,
+                                     Slug = movie.Slug,
+                                     Position = movie.Position,
+                                     CategoryName = cate.Name,
+                                     Updated_Date = movie.Updated_Date,
+                                 }).GroupBy(m => m.Id)
+                            .Select(group => group.First());
+                    var result = await query.ToListAsync();
+                    result = result.OrderByDescending(m => m.Updated_Date).ToList();
+                    return result;
+                }
+            }
+            else if (genreId == 0 && countryId != 0 && year == 0)
+            {
+                if (order == 1)
+                {
+                    var query = (from mg in _dbContext.MovieGenres
+                                 join movie in _dbContext.Movies on mg.MovieId equals movie.Id
+                                 join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                                 where movie.Status == true 
+                                     && movie.CountryId == countryId
+                                 select new MovieViewModel
+                                 {
+                                     Id = movie.Id,
+                                     Title = movie.Title,
+                                     Image = movie.Image,
+                                     Episode_Number = movie.Episode_Number,
+                                     CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                     Subtitle = movie.Subtitle,
+                                     Slug = movie.Slug,
+                                     Position = movie.Position,
+                                     CategoryName = cate.Name,
+                                     Updated_Date = movie.Updated_Date,
+                                 }).GroupBy(m => m.Id)
+                            .Select(group => group.First());
+                    var result = await query.ToListAsync();
+                    result = result.OrderByDescending(m => m.Created_Date).ToList();
+                    return result;
+                }
+                else if (order == 2)
+                {
+                    var query = (from mg in _dbContext.MovieGenres
+                                 join movie in _dbContext.Movies on mg.MovieId equals movie.Id
+                                 join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                                 where movie.Status == true
+                                     && movie.CountryId == countryId
+                                 select new MovieViewModel
+                                 {
+                                     Id = movie.Id,
+                                     Title = movie.Title,
+                                     Image = movie.Image,
+                                     Episode_Number = movie.Episode_Number,
+                                     CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                     Subtitle = movie.Subtitle,
+                                     Slug = movie.Slug,
+                                     Position = movie.Position,
+                                     CategoryName = cate.Name,
+                                     Updated_Date = movie.Updated_Date,
+                                 }).GroupBy(m => m.Id)
+                            .Select(group => group.First());
+                    var result = await query.ToListAsync();
+                    result = result.OrderByDescending(m => m.Year_Release).ToList();
+                    return result;
+                }
+                else if (order == 3)
+                {
+                    var query = (from mg in _dbContext.MovieGenres
+                                 join movie in _dbContext.Movies on mg.MovieId equals movie.Id
+                                 join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                                 where movie.Status == true
+                                     && movie.CountryId == countryId
+                                 select new MovieViewModel
+                                 {
+                                     Id = movie.Id,
+                                     Title = movie.Title,
+                                     Image = movie.Image,
+                                     Episode_Number = movie.Episode_Number,
+                                     CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                     Subtitle = movie.Subtitle,
+                                     Slug = movie.Slug,
+                                     Position = movie.Position,
+                                     CategoryName = cate.Name,
+                                     Updated_Date = movie.Updated_Date,
+                                 }).GroupBy(m => m.Id)
+                            .Select(group => group.First());
+                    var result = await query.ToListAsync();
+                    result = result.OrderBy(m => m.Title).ToList();
+                    return result;
+                }
+                else if (order == 4)
+                {
+                    var query = (from mg in _dbContext.MovieGenres
+                                 join movie in _dbContext.Movies on mg.MovieId equals movie.Id
+                                 join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                                 where movie.Status == true
+                                     && movie.CountryId == countryId
+                                 select new MovieViewModel
+                                 {
+                                     Id = movie.Id,
+                                     Title = movie.Title,
+                                     Image = movie.Image,
+                                     Episode_Number = movie.Episode_Number,
+                                     CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                     Subtitle = movie.Subtitle,
+                                     Slug = movie.Slug,
+                                     Position = movie.Position,
+                                     CategoryName = cate.Name,
+                                     Updated_Date = movie.Updated_Date,
+                                 }).GroupBy(m => m.Id)
+                            .Select(group => group.First());
+                    return await query.ToListAsync();
+                }
+                else
+                {
+                    var query = (from mg in _dbContext.MovieGenres
+                                 join movie in _dbContext.Movies on mg.MovieId equals movie.Id
+                                 join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                                 where movie.Status == true
+                                     && movie.CountryId == countryId
+                                 select new MovieViewModel
+                                 {
+                                     Id = movie.Id,
+                                     Title = movie.Title,
+                                     Image = movie.Image,
+                                     Episode_Number = movie.Episode_Number,
+                                     CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                     Subtitle = movie.Subtitle,
+                                     Slug = movie.Slug,
+                                     Position = movie.Position,
+                                     CategoryName = cate.Name,
+                                     Updated_Date = movie.Updated_Date,
+                                 }).GroupBy(m => m.Id)
+                            .Select(group => group.First());
+                    var result = await query.ToListAsync();
+                    result = result.OrderByDescending(m => m.Updated_Date).ToList();
+                    return result;
+                }
+            }
+            else if (genreId == 0 && countryId == 0 && year != 0)
+            {
+                if (order == 1)
+                {
+                    var query = (from mg in _dbContext.MovieGenres
+                                 join movie in _dbContext.Movies on mg.MovieId equals movie.Id
+                                 join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                                 where movie.Status == true && movie.Year_Release == year.ToString()
+                                 select new MovieViewModel
+                                 {
+                                     Id = movie.Id,
+                                     Title = movie.Title,
+                                     Image = movie.Image,
+                                     Episode_Number = movie.Episode_Number,
+                                     CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                     Subtitle = movie.Subtitle,
+                                     Slug = movie.Slug,
+                                     Position = movie.Position,
+                                     CategoryName = cate.Name,
+                                     Updated_Date = movie.Updated_Date,
+                                 }).GroupBy(m => m.Id)
+                            .Select(group => group.First());
+                    var result = await query.ToListAsync();
+                    result = result.OrderByDescending(m => m.Created_Date).ToList();
+                    return result;
+                }
+                else if (order == 2)
+                {
+                    var query = (from mg in _dbContext.MovieGenres
+                                 join movie in _dbContext.Movies on mg.MovieId equals movie.Id
+                                 join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                                 where movie.Status == true && movie.Year_Release == year.ToString()
+                                 select new MovieViewModel
+                                 {
+                                     Id = movie.Id,
+                                     Title = movie.Title,
+                                     Image = movie.Image,
+                                     Episode_Number = movie.Episode_Number,
+                                     CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                     Subtitle = movie.Subtitle,
+                                     Slug = movie.Slug,
+                                     Position = movie.Position,
+                                     CategoryName = cate.Name,
+                                     Updated_Date = movie.Updated_Date,
+                                 }).GroupBy(m => m.Id)
+                            .Select(group => group.First());
+                    var result = await query.ToListAsync();
+                    result = result.OrderByDescending(m => m.Year_Release).ToList();
+                    return result;
+                }
+                else if (order == 3)
+                {
+                    var query = (from mg in _dbContext.MovieGenres
+                                 join movie in _dbContext.Movies on mg.MovieId equals movie.Id
+                                 join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                                 where movie.Status == true && movie.Year_Release == year.ToString()
+                                 select new MovieViewModel
+                                 {
+                                     Id = movie.Id,
+                                     Title = movie.Title,
+                                     Image = movie.Image,
+                                     Episode_Number = movie.Episode_Number,
+                                     CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                     Subtitle = movie.Subtitle,
+                                     Slug = movie.Slug,
+                                     Position = movie.Position,
+                                     CategoryName = cate.Name,
+                                     Updated_Date = movie.Updated_Date,
+                                 }).GroupBy(m => m.Id)
+                            .Select(group => group.First());
+                    var result = await query.ToListAsync();
+                    result = result.OrderBy(m => m.Title).ToList();
+                    return result;
+                }
+                else if (order == 4)
+                {
+                    var query = (from mg in _dbContext.MovieGenres
+                                 join movie in _dbContext.Movies on mg.MovieId equals movie.Id
+                                 join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                                 where movie.Status == true && movie.Year_Release == year.ToString()
+                                 select new MovieViewModel
+                                 {
+                                     Id = movie.Id,
+                                     Title = movie.Title,
+                                     Image = movie.Image,
+                                     Episode_Number = movie.Episode_Number,
+                                     CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                     Subtitle = movie.Subtitle,
+                                     Slug = movie.Slug,
+                                     Position = movie.Position,
+                                     CategoryName = cate.Name,
+                                     Updated_Date = movie.Updated_Date,
+                                 }).GroupBy(m => m.Id)
+                            .Select(group => group.First());
+                    return await query.ToListAsync();
+                }
+                else
+                {
+                    var query = (from mg in _dbContext.MovieGenres
+                                 join movie in _dbContext.Movies on mg.MovieId equals movie.Id
+                                 join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                                 where movie.Status == true && movie.Year_Release == year.ToString()
+                                 select new MovieViewModel
+                                 {
+                                     Id = movie.Id,
+                                     Title = movie.Title,
+                                     Image = movie.Image,
+                                     Episode_Number = movie.Episode_Number,
+                                     CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                     Subtitle = movie.Subtitle,
+                                     Slug = movie.Slug,
+                                     Position = movie.Position,
+                                     CategoryName = cate.Name,
+                                     Updated_Date = movie.Updated_Date,
+                                 }).GroupBy(m => m.Id)
+                            .Select(group => group.First());
+                    var result = await query.ToListAsync();
+                    result = result.OrderByDescending(m => m.Updated_Date).ToList();
+                    return result;
+                }
+            }
+            else if (genreId == 0 && countryId == 0 && year == 0)
+            {
+                if (order == 1)
+                {
+                    var query = (from mg in _dbContext.MovieGenres
+                                 join movie in _dbContext.Movies on mg.MovieId equals movie.Id
+                                 join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                                 where movie.Status == true 
+                                 select new MovieViewModel
+                                 {
+                                     Id = movie.Id,
+                                     Title = movie.Title,
+                                     Image = movie.Image,
+                                     Episode_Number = movie.Episode_Number,
+                                     CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                     Subtitle = movie.Subtitle,
+                                     Slug = movie.Slug,
+                                     Position = movie.Position,
+                                     CategoryName = cate.Name,
+                                     Updated_Date = movie.Updated_Date,
+                                 }).GroupBy(m => m.Id)
+                            .Select(group => group.First());
+                    var result = await query.ToListAsync();
+                    result = result.OrderByDescending(m => m.Created_Date).ToList();
+                    return result;
+                }
+                else if (order == 2)
+                {
+                    var query = (from mg in _dbContext.MovieGenres
+                                 join movie in _dbContext.Movies on mg.MovieId equals movie.Id
+                                 join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                                 where movie.Status == true
+                                 select new MovieViewModel
+                                 {
+                                     Id = movie.Id,
+                                     Title = movie.Title,
+                                     Image = movie.Image,
+                                     Episode_Number = movie.Episode_Number,
+                                     CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                     Subtitle = movie.Subtitle,
+                                     Slug = movie.Slug,
+                                     Position = movie.Position,
+                                     CategoryName = cate.Name,
+                                     Updated_Date = movie.Updated_Date,
+                                 }).GroupBy(m => m.Id)
+                            .Select(group => group.First());
+                    var result = await query.ToListAsync();
+                    result = result.OrderByDescending(m => m.Year_Release).ToList();
+                    return result;
+                }
+                else if (order == 3)
+                {
+                    var query = (from mg in _dbContext.MovieGenres
+                                 join movie in _dbContext.Movies on mg.MovieId equals movie.Id
+                                 join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                                 where movie.Status == true
+                                 select new MovieViewModel
+                                 {
+                                     Id = movie.Id,
+                                     Title = movie.Title,
+                                     Image = movie.Image,
+                                     Episode_Number = movie.Episode_Number,
+                                     CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                     Subtitle = movie.Subtitle,
+                                     Slug = movie.Slug,
+                                     Position = movie.Position,
+                                     CategoryName = cate.Name,
+                                     Updated_Date = movie.Updated_Date,
+                                 }).GroupBy(m => m.Id)
+                            .Select(group => group.First());
+                    var result = await query.ToListAsync();
+                    result = result.OrderBy(m => m.Title).ToList();
+                    return result;
+                }
+                else if (order == 4)
+                {
+                    var query = (from mg in _dbContext.MovieGenres
+                                 join movie in _dbContext.Movies on mg.MovieId equals movie.Id
+                                 join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                                 where movie.Status == true
+                                 select new MovieViewModel
+                                 {
+                                     Id = movie.Id,
+                                     Title = movie.Title,
+                                     Image = movie.Image,
+                                     Episode_Number = movie.Episode_Number,
+                                     CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                     Subtitle = movie.Subtitle,
+                                     Slug = movie.Slug,
+                                     Position = movie.Position,
+                                     CategoryName = cate.Name,
+                                     Updated_Date = movie.Updated_Date,
+                                 }).GroupBy(m => m.Id)
+                            .Select(group => group.First());
+                    return await query.ToListAsync();
+                }
+                else
+                {
+                    var query = (from mg in _dbContext.MovieGenres
+                                 join movie in _dbContext.Movies on mg.MovieId equals movie.Id
+                                 join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                                 where movie.Status == true 
+                                 select new MovieViewModel
+                                 {
+                                     Id = movie.Id,
+                                     Title = movie.Title,
+                                     Image = movie.Image,
+                                     Episode_Number = movie.Episode_Number,
+                                     CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                     Subtitle = movie.Subtitle,
+                                     Slug = movie.Slug,
+                                     Position = movie.Position,
+                                     CategoryName = cate.Name,
+                                     Updated_Date = movie.Updated_Date,
+                                 }).GroupBy(m => m.Id)
+                            .Select(group => group.First());
+                    var result = await query.ToListAsync();
+                    result = result.OrderByDescending(m => m.Updated_Date).ToList();
+                    return result;
+                }
+            }
+            return null;
+        }
+
+        public async Task<MoviePagin?> PaginFilterByGenre(int currentPage, int order, int genreId, int countryId, int year)
+        {
+            var pageResults = 24f;
+            var pageCount = Math.Ceiling(_dbContext.MovieGenres.Where(x => x.GenreId == genreId).GroupBy(x => x.MovieId).Count() / pageResults);
+
+            var movies = await GetFilter( order, genreId, countryId, year);
+
+            if (movies == null) return null;
+
+            var result = movies.Skip((currentPage - 1) * (int)pageResults).Take((int)pageResults).ToList();
+
+            if (result == null) return null;
+
+            var moviePagin = new MoviePagin
+            {
+                MovieViewModels = result,
+                CurrentPage = currentPage,
+                PageCount = (int)pageCount
+            };
+            return moviePagin;
+        }
+
+        public async Task<MoviePagin?> PaginationByCountry(int currentPage, int countryId)
+        {
+            var pageResults = 24f;
+
+            var pageCount = Math.Ceiling(_dbContext.Movies.Where(x => x.CountryId == countryId).Count() / pageResults);
+
+            var movies = await GetByCountryId(countryId);
+
+            var result = movies.Skip((currentPage - 1) * (int)pageResults).Take((int)pageResults).ToList();
+
+            if (result == null) return null;
+
+            var moviePagin = new MoviePagin
+            {
+                MovieViewModels = result,
+                CurrentPage = currentPage,
+                PageCount = (int)pageCount
+            };
+            return moviePagin;
+        }
+
+        public async Task<MoviePagin?> PaginFilterByCountry(int currentPage, int order, int genreId, int countryId, int year)
+        {
+            var pageResults = 24f;
+            var pageCount = Math.Ceiling(_dbContext.Movies.Where(x => x.CountryId == countryId).Count() / pageResults);
+
+            var movies = await GetFilter(order, genreId, countryId, year);
+
+            if (movies == null) return null;
+
+            var result = movies.Skip((currentPage - 1) * (int)pageResults).Take((int)pageResults).ToList();
+
+            if (result == null) return null;
+
+            var moviePagin = new MoviePagin
+            {
+                MovieViewModels = result,
+                CurrentPage = currentPage,
+                PageCount = (int)pageCount
+            };
+            return moviePagin;
+        }
+
+        public async Task<List<MovieViewModel>> GetByCountryId(int countryId)
+        {
+            var query = from movie in _dbContext.Movies
+                        join country in _dbContext.Countries on movie.CountryId equals country.Id
+                        where movie.Status == true && country.Id == countryId
+                        orderby movie.Updated_Date descending
+                        select new MovieViewModel
+                        {
+                            Id = movie.Id,
+                            Title = movie.Title,
+                            Image = movie.Image,
+                            Episode_Number = movie.Episode_Number,
+                            CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                            Subtitle = movie.Subtitle,
+                            Slug = movie.Slug,
+                            Position = movie.Position,
+                            Updated_Date = movie.Updated_Date,
+                            CountryId = movie.CountryId,
+                            CountryName = country.Name,
+                        };
+            return await query.ToListAsync();
+        }
+
+        public async Task<MoviePagin?> PaginationByYear(int currentPage, int year)
+        {
+            var pageResults = 24f;
+
+            var pageCount = Math.Ceiling(_dbContext.Movies.Where(x => x.Year_Release == year.ToString()).Count() / pageResults);
+
+            var movies = await GetByYear(year);
+
+            var result = movies.Skip((currentPage - 1) * (int)pageResults).Take((int)pageResults).ToList();
+
+            if (result == null) return null;
+
+            var moviePagin = new MoviePagin
+            {
+                MovieViewModels = result,
+                CurrentPage = currentPage,
+                PageCount = (int)pageCount
+            };
+            return moviePagin;
+        }
+
+        public async Task<MoviePagin?> PaginFilterByYear(int currentPage, int order, int genreId, int countryId, int year)
+        {
+            var pageResults = 24f;
+            var pageCount = Math.Ceiling(_dbContext.Movies.Where(x => x.Year_Release == year.ToString()).Count() / pageResults);
+
+            var movies = await GetFilter(order, genreId, countryId, year);
+
+            if (movies == null) return null;
+
+            var result = movies.Skip((currentPage - 1) * (int)pageResults).Take((int)pageResults).ToList();
+
+            if (result == null) return null;
+
+            var moviePagin = new MoviePagin
+            {
+                MovieViewModels = result,
+                CurrentPage = currentPage,
+                PageCount = (int)pageCount
+            };
+            return moviePagin;
+        }
+
+        public async Task<List<MovieViewModel>> GetByYear(int year)
+        {
+            var query = from movie in _dbContext.Movies
+                        where movie.Status == true && movie.Year_Release == year.ToString()
+                        orderby movie.Updated_Date descending
+                        select new MovieViewModel
+                        {
+                            Id = movie.Id,
+                            Title = movie.Title,
+                            Image = movie.Image,
+                            Episode_Number = movie.Episode_Number,
+                            CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                            Subtitle = movie.Subtitle,
+                            Slug = movie.Slug,
+                            Position = movie.Position,
+                            Updated_Date = movie.Updated_Date,
+                            Year_Release = movie.Year_Release,
+                        };
+            return await query.ToListAsync();
         }
     }
 }

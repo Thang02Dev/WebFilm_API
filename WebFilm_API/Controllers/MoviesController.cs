@@ -16,10 +16,31 @@ namespace WebFilm_API.Controllers
             _service = service;
         }
 
-        [HttpGet("pagin-filter/{page:int}")]
-        public async Task<IActionResult> GetPagin(int page, int cateId, int order, int genreId, int countryId, int year)
+        [HttpGet("pagin-filter-cate/{page:int}")]
+        public async Task<IActionResult> GetPaginCate(int page, int cateId, int order, int genreId, int countryId, int year)
         {
-            var rs = await _service.PaginFilter(page, cateId, order, genreId, countryId, year);
+            var rs = await _service.PaginFilterByCate(page, cateId, order, genreId, countryId, year);
+            if (rs == null) return NotFound();
+            return Ok(rs);
+        }
+        [HttpGet("pagin-filter-genre/{page:int}")]
+        public async Task<IActionResult> GetPaginGenre(int page, int order, int genreId, int countryId, int year)
+        {
+            var rs = await _service.PaginFilterByGenre(page, order, genreId, countryId, year);
+            if (rs == null) return NotFound();
+            return Ok(rs);
+        }
+        [HttpGet("pagin-filter-country/{page:int}")]
+        public async Task<IActionResult> GetPaginCountry(int page, int order, int genreId, int countryId, int year)
+        {
+            var rs = await _service.PaginFilterByCountry(page, order, genreId, countryId, year);
+            if (rs == null) return NotFound();
+            return Ok(rs);
+        }
+        [HttpGet("pagin-filter-year/{page:int}")]
+        public async Task<IActionResult> GetPaginYear(int page, int order, int genreId, int countryId, int year)
+        {
+            var rs = await _service.PaginFilterByYear(page, order, genreId, countryId, year);
             if (rs == null) return NotFound();
             return Ok(rs);
         }
@@ -72,9 +93,30 @@ namespace WebFilm_API.Controllers
             return Ok(rs);
         }
         [HttpGet("get-by-cateid/{page:int}")]
-        public async Task<IActionResult> GetPagin(int page,int cateId)
+        public async Task<IActionResult> GetPaginCate(int page,int cateId)
         {
-            var rs = await _service.Pagination(page, cateId);
+            var rs = await _service.PaginationByCate(page, cateId);
+            if (rs == null) return NotFound();
+            return Ok(rs);
+        }
+        [HttpGet("get-by-genreid/{page:int}")]
+        public async Task<IActionResult> GetPaginGenre(int page, int genreId)
+        {
+            var rs = await _service.PaginationByGenre(page, genreId);
+            if (rs == null) return NotFound();
+            return Ok(rs);
+        }
+        [HttpGet("get-by-countryid/{page:int}")]
+        public async Task<IActionResult> GetPaginCountry(int page, int countryId)
+        {
+            var rs = await _service.PaginationByCountry(page, countryId);
+            if (rs == null) return NotFound();
+            return Ok(rs);
+        }
+        [HttpGet("get-by-year/{page:int}")]
+        public async Task<IActionResult> GetPaginYear(int page, int year)
+        {
+            var rs = await _service.PaginationByYear(page, year);
             if (rs == null) return NotFound();
             return Ok(rs);
         }

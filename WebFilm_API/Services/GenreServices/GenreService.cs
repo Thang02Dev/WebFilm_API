@@ -101,6 +101,7 @@ namespace WebFilm_API.Services.GenreServices
                         {
                             Id = genre.Id,
                             Name = genre.Name,
+                            Slug = genre.Slug,
                         };
             return await query.ToListAsync();
         }
@@ -114,6 +115,18 @@ namespace WebFilm_API.Services.GenreServices
             genre.Slug = ConvertDatas.ConvertToSlug(model.Name);
             await _dbContext.SaveChangesAsync();
             return model;
+        }
+        public async Task<GenreViewModel?> GetBySlug(string slug)
+        {
+            var query = from genre in _dbContext.Genres
+                        where genre.Slug == slug
+                        select new GenreViewModel
+                        {
+                            Id = genre.Id,
+                            Name = genre.Name,
+                            
+                        };
+            return await query.FirstOrDefaultAsync();
         }
     }
 }

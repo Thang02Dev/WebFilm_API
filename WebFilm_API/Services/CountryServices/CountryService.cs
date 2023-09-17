@@ -100,6 +100,7 @@ namespace WebFilm_API.Services.CountryServices
                         {
                             Id = country.Id,
                             Name = country.Name,
+                            Slug = country.Slug,
                         };
             return await query.ToListAsync();
         }
@@ -113,6 +114,19 @@ namespace WebFilm_API.Services.CountryServices
             country.Slug = ConvertDatas.ConvertToSlug(model.Name);
             await _dbContext.SaveChangesAsync();
             return model;
+        }
+
+        public async Task<CountryViewModel?> GetBySlug(string slug)
+        {
+            var query = from country in _dbContext.Countries
+                        where country.Slug == slug
+                        select new CountryViewModel
+                        {
+                            Id = country.Id,
+                            Name = country.Name,
+
+                        };
+            return await query.FirstOrDefaultAsync();
         }
     }
 }

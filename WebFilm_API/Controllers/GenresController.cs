@@ -28,6 +28,13 @@ namespace WebFilm_API.Controllers
             var rs = await _service.GetCount();
             return Ok(rs);
         }
+        [HttpGet("get-by-slug/{slug}")]
+        public async Task<IActionResult> GetBySlug(string slug)
+        {
+            var rs = await _service.GetBySlug(slug);
+            if (rs == null) return NotFound();
+            return Ok(rs);
+        }
         [HttpGet("get-by-status")]
         public async Task<IActionResult> GetByStatus()
         {
