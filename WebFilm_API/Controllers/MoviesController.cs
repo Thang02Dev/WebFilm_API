@@ -51,6 +51,13 @@ namespace WebFilm_API.Controllers
             if (rs == null) return NotFound();
             return Ok(rs);
         }
+        [HttpGet("get-by-slug/{slug}")]
+        public async Task<IActionResult> GetBySlug(string slug)
+        {
+            var rs = await _service.GetBySlug(slug);
+            if (rs == null) return NotFound();
+            return Ok(rs);
+        }
         [HttpGet("get-by-categoryslug")]
         public async Task<IActionResult> GetByCategorySlug(string cateSlug)
         {

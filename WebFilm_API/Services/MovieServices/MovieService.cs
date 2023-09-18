@@ -2655,5 +2655,19 @@ namespace WebFilm_API.Services.MovieServices
                         };
             return await query.ToListAsync();
         }
+
+        public async Task<MovieViewModel?> GetBySlug(string slug)
+        {
+            var query = from movie in _dbContext.Movies
+                        join country in _dbContext.Countries on movie.CountryId equals country.Id
+                        where movie.Slug == slug
+                        select new MovieViewModel
+                        {
+                            Id = movie.Id,
+                            Title = movie.Title,
+                            CountryName = country.Name,
+                        };
+            return await query.FirstOrDefaultAsync();
+        }
     }
 }
