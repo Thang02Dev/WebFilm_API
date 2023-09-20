@@ -162,6 +162,14 @@ namespace WebFilm_API.Services.MovieServices
 
         public async Task<MovieViewModel?> GetById(int id)
         {
+            var epiCount = 0;
+            var epiNew = 0;
+            var episodes = await _dbContext.Episodes.Where(x => x.MovieId == id).ToListAsync();
+            if (episodes.Count() != 0)
+            {
+                epiCount = episodes.Count();
+                epiNew = episodes.Max(x => x.Episode_Number);
+            }          
             var query = from movie in _dbContext.Movies
                         join category in _dbContext.Categories
                             on movie.CategoryId equals category.Id into joinCategories
@@ -198,6 +206,7 @@ namespace WebFilm_API.Services.MovieServices
                             CategoryName = joinCategory.Name,
                             Director = movie.Director,
                             Performer = movie.Performer,
+                            
                         };
             var _movie = await query.FirstOrDefaultAsync();
             if (_movie == null) return null;
@@ -205,6 +214,16 @@ namespace WebFilm_API.Services.MovieServices
             {
                 var genreName = await _dbContext.Genres.FirstAsync(x => x.Id == item);
                 _movie.GenreName.Add(genreName.Name);
+            }
+            if (_movie.Episode_Number == epiCount)
+            {
+                _movie.Condition = "Hoàn tất";
+                _movie.EpisodeStatus = $"Full {epiCount}/{epiCount} Vietsub";
+            }
+            else
+            {
+                _movie.Condition = "Phim đang chiếu";
+                _movie.EpisodeStatus = $"Tập {epiNew}";
             }
             return _movie;
         }
