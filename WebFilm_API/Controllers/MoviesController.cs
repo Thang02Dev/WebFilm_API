@@ -51,6 +51,13 @@ namespace WebFilm_API.Controllers
             if (rs == null) return NotFound();
             return Ok(rs);
         }
+        [HttpGet("search/{value}")]
+        public async Task<IActionResult> Searching(string value)
+        {
+            var rs = await _service.Searching(value);
+            if (rs == null) return NotFound();
+            return Ok(rs);
+        }
         [HttpGet("get-by-slug/{slug}")]
         public async Task<IActionResult> GetBySlug(string slug)
         {

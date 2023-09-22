@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Text;
 using WebFilm_API.Commons;
 using WebFilm_API.DB;
 using WebFilm_API.Models;
@@ -206,7 +207,7 @@ namespace WebFilm_API.Services.MovieServices
                             CategoryName = joinCategory.Name,
                             Director = movie.Director,
                             Performer = movie.Performer,
-                            
+                            EpisodeNew = epiNew
                         };
             var _movie = await query.FirstOrDefaultAsync();
             if (_movie == null) return null;
@@ -2687,6 +2688,26 @@ namespace WebFilm_API.Services.MovieServices
                             CountryName = country.Name,
                         };
             return await query.FirstOrDefaultAsync();
+        }
+
+        public async Task<List<MovieViewModel>> Searching(string value)
+        {
+            var query = from movie in _dbContext.Movies
+                        where movie.Status == true && movie.Title.ToLower().Contains(value.ToLower()) || movie.Slug.Contains(ConvertDatas.ConvertToSlug(value))
+                        orderby movie.Updated_Date descending
+                        select new MovieViewModel
+                        {
+                            Id = movie.Id,
+                            Title = movie.Title,
+                            Image = movie.Image,
+                            Episode_Number = movie.Episode_Number,
+                            CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                            Subtitle = movie.Subtitle,
+                            Slug = movie.Slug,
+                            Position = movie.Position,
+                            Updated_Date = movie.Updated_Date,
+                        };
+            return await query.ToListAsync();
         }
     }
 }

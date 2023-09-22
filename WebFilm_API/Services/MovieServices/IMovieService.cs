@@ -9,7 +9,7 @@ namespace WebFilm_API.Services.MovieServices
         Task<List<MovieViewModel>> GetByHot();
         Task<MovieViewModel?> GetBySlug(string slug);
         Task<List<MovieViewModel>> GetByCategorySlug(string cateSlug);
-
+        Task<List<MovieViewModel>> Searching(string value);
         Task<List<MovieViewModel>> GetByCategoryId(int cateId);
         Task<List<MovieViewModel>> GetByGenreId(int genreId);
         Task<List<MovieViewModel>> GetByCountryId(int countryId);

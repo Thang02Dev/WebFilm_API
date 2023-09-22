@@ -11,7 +11,7 @@ namespace WebFilm_API.Services.EpisodeServices
         Task<bool> Delete(int id);
         Task<EpisodeViewModel?> Update(int id, EpisodeViewModel model);
         Task<EpisodePagin?> Pagination(int movieId,int currentPage);
-
+        
 
     }
 }

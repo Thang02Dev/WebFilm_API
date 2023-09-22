@@ -44,5 +44,6 @@ namespace WebFilm_API.ViewModels
         public int? CountEpisodes { get; set; }
         public string? Condition { get; set; } = string.Empty;
         public string? EpisodeStatus { get; set; } = string.Empty;
+        public int? EpisodeNew { get; set; }
     }
 }
