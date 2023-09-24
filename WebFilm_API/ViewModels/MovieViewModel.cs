@@ -10,7 +10,6 @@ namespace WebFilm_API.ViewModels
         public int Id { get; set; }
         [StringLength(250)]
         public string Title { get; set; } = string.Empty;
-        [StringLength(255)]
         public string Description { get; set; } = string.Empty;
         [StringLength(200)]
         public string? Trailer { get; set; } = string.Empty;

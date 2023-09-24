@@ -484,6 +484,8 @@ namespace WebFilm_API.Services.MovieServices
                              Position = movie.Position,
                              Updated_Date = movie.Updated_Date,
                              GenreId = _dbContext.MovieGenres.Where(x => x.MovieId == movie.Id).Select(x => x.GenreId).ToList(),
+                            EpisodeNew = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).Max(x => x.Episode_Number),
+
                          }).GroupBy(m => m.Id)
                             .Select(group => group.First()).Take(15);
             var result = await query.ToListAsync();
@@ -2622,6 +2624,8 @@ namespace WebFilm_API.Services.MovieServices
                             Updated_Date = movie.Updated_Date,
                             CountryId = movie.CountryId,
                             CountryName = country.Name,
+                            EpisodeNew = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).Max(x => x.Episode_Number),
+
                         };
             return await query.ToListAsync();
         }
@@ -2686,6 +2690,8 @@ namespace WebFilm_API.Services.MovieServices
                             Position = movie.Position,
                             Updated_Date = movie.Updated_Date,
                             Year_Release = movie.Year_Release,
+                            EpisodeNew = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).Max(x => x.Episode_Number),
+
                         };
             return await query.ToListAsync();
         }
