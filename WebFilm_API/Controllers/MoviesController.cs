@@ -16,6 +16,13 @@ namespace WebFilm_API.Controllers
             _service = service;
         }
 
+        [HttpGet("pagin-search/{page:int}")]
+        public async Task<IActionResult> GetPaginSearch(int page,string value)
+        {
+            var rs = await _service.Pagination(page,value);
+            if (rs == null) return NotFound();
+            return Ok(rs);
+        }
         [HttpGet("pagin-filter-cate/{page:int}")]
         public async Task<IActionResult> GetPaginCate(int page, int cateId, int order, int genreId, int countryId, int year)
         {

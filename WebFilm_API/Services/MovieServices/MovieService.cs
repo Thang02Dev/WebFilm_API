@@ -48,15 +48,12 @@ namespace WebFilm_API.Services.MovieServices
             return (bool) movie.Hot;
             #pragma warning restore CS8629 // Nullable value type may be null.
         }
-
-
         public async Task<bool> CheckName(string name)
         {
             var rs = await _dbContext.Movies.FirstOrDefaultAsync(x => x.Title.ToLower() == name.ToLower());
             if (rs == null) return false;
             return true;
         }
-
         public async Task<MovieViewModel?> Create(MovieViewModel model)
         {
             if (model == null) return null;
@@ -99,7 +96,6 @@ namespace WebFilm_API.Services.MovieServices
             }
             return model;
         }
-
         public async Task<bool> Delete(int id)
         {
             var movie = await _dbContext.Movies.FirstOrDefaultAsync(x => x.Id == id);
@@ -117,7 +113,6 @@ namespace WebFilm_API.Services.MovieServices
             await _dbContext.SaveChangesAsync();
             return true;
         }
-
         public async Task<List<MovieViewModel>> GetAll()
         {
             var query = from movie in _dbContext.Movies
@@ -160,7 +155,6 @@ namespace WebFilm_API.Services.MovieServices
                         };
             return await query.ToListAsync();
         }
-
         public async Task<MovieViewModel?> GetById(int id)
         {
             var epiCount = 0;
@@ -228,7 +222,6 @@ namespace WebFilm_API.Services.MovieServices
             }
             return _movie;
         }
-
         public async Task<MoviePagin?> Pagination(int currentPage)
         {
             var pageResults = 20f;
@@ -248,7 +241,25 @@ namespace WebFilm_API.Services.MovieServices
             };
             return moviePagin;
         }
+        public async Task<MoviePagin?> Pagination(int currentPage,string valueSearch)
+        {
+            var pageResults = 24f;
+            var pageCount = Math.Ceiling(Searching(valueSearch).Result.Count() / pageResults);
 
+            var movies = await Searching(valueSearch);
+
+            var result = movies.Skip((currentPage - 1) * (int)pageResults).Take((int)pageResults).ToList();
+
+            if (result == null) return null;
+
+            var moviePagin = new MoviePagin
+            {
+                MovieViewModels = result,
+                CurrentPage = currentPage,
+                PageCount = (int)pageCount
+            };
+            return moviePagin;
+        }
         public async Task<MovieViewModel?> Update(int id, MovieViewModel model)
         {
             var movie = await _dbContext.Movies.FirstOrDefaultAsync(x => x.Id == id);
@@ -295,7 +306,6 @@ namespace WebFilm_API.Services.MovieServices
             }
             return model;
         }
-
         public async Task<List<MovieViewModel>> GetByStatus()
         {
             var query = from movie in _dbContext.Movies
@@ -308,17 +318,15 @@ namespace WebFilm_API.Services.MovieServices
                         };
             return await query.ToListAsync();
         }
-
         public async Task<int> GetCount()
         {
             return await _dbContext.Movies.CountAsync();
         }
-
         public async Task<List<MovieViewModel>> GetByCategorySlug(string cateSlug)
         {
             int take=8;
             if (cateSlug == "phim-bo") take = 20;
-
+            
             var query = (from movie in _dbContext.Movies
                         join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
                         where movie.Status == true && cate.Slug == cateSlug.ToLower()
@@ -333,7 +341,8 @@ namespace WebFilm_API.Services.MovieServices
                             Subtitle = movie.Subtitle,
                             Slug = movie.Slug,
                             Position = movie.Position,
-                            CategoryName = cate.Name
+                            CategoryName = cate.Name,
+                            EpisodeNew = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).Max(x => x.Episode_Number),
                         }).Take(take);
             return await query.ToListAsync();
         }
@@ -355,10 +364,11 @@ namespace WebFilm_API.Services.MovieServices
                              Slug = movie.Slug,
                              Position = movie.Position,
                              GenreId = _dbContext.MovieGenres.Where(x => x.MovieId == movie.Id).Select(x => x.GenreId).ToList(),
+                             EpisodeNew = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).Max(x => x.Episode_Number),
+
                          }).Take(8);
             return await query.ToListAsync();
         }
-
         public async Task<List<MovieViewModel>> GetByHot()
         {
             var query = (from moviegenre in _dbContext.MovieGenres
@@ -377,6 +387,7 @@ namespace WebFilm_API.Services.MovieServices
                              Position = movie.Position,
                              Updated_Date = movie.Updated_Date,
                              GenreId = _dbContext.MovieGenres.Where(x => x.MovieId == movie.Id).Select(x => x.GenreId).ToList(),
+                             EpisodeNew = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).Max(x => x.Episode_Number),
                          }).GroupBy(m => m.Id)
                             .Select(group => group.First()).Take(15);
             var result = await query.ToListAsync();
@@ -384,7 +395,6 @@ namespace WebFilm_API.Services.MovieServices
             return result;
 
         }
-
         public async Task<MoviePagin?> PaginationByCate(int currentPage, int cateId)
         {
             var pageResults = 24f;
@@ -426,6 +436,8 @@ namespace WebFilm_API.Services.MovieServices
                                 Position = movie.Position,
                                 CategoryName = cate.Name,
                                 Updated_Date = movie.Updated_Date,
+                                EpisodeNew = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).Max(x => x.Episode_Number),
+
                             };
                 return await query.ToListAsync();
             }
@@ -448,6 +460,8 @@ namespace WebFilm_API.Services.MovieServices
                                 Position = movie.Position,
                                 CategoryName = cate.Name,
                                 Updated_Date = movie.Updated_Date,
+                                EpisodeNew = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).Max(x => x.Episode_Number),
+
                             };
                 return await query.ToListAsync();
             }
@@ -2693,7 +2707,10 @@ namespace WebFilm_API.Services.MovieServices
         public async Task<List<MovieViewModel>> Searching(string value)
         {
             var query = from movie in _dbContext.Movies
-                        where movie.Status == true && movie.Title.ToLower().Contains(value.ToLower()) || movie.Slug.Contains(ConvertDatas.ConvertToSlug(value))
+                        where movie.Status == true 
+                                && movie.Title.ToLower().Contains(value.ToLower()) 
+                                || movie.Slug.Contains(ConvertDatas.ConvertToSlug(value))
+                                || movie.Name_Eng.ToLower().Contains(value.ToLower())
                         orderby movie.Updated_Date descending
                         select new MovieViewModel
                         {

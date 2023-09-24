@@ -27,6 +27,7 @@ namespace WebFilm_API.Services.MovieServices
         Task<int> ChangedPosition(int id, int newPosition);
         Task<bool> ChangedTopView(int id);
         Task<MoviePagin?> Pagination(int currentPage);
+        Task<MoviePagin?> Pagination(int currentPage,string valueSearch);
         Task<MoviePagin?> PaginationByCate(int currentPage, int cateId);
         Task<MoviePagin?> PaginationByGenre(int currentPage, int genreId);
         Task<MoviePagin?> PaginationByCountry(int currentPage, int countryId);
