@@ -39,6 +39,6 @@ namespace WebFilm_API.Services.MovieServices
         Task<MoviePagin?> PaginFilterByCountry(int currentPage, int order, int genreId, int countryId, int year);
         Task<MoviePagin?> PaginFilterByYear(int currentPage, int order, int genreId, int countryId, int year);
 
-
+        
     }
 }

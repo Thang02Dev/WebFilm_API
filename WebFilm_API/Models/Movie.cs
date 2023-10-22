@@ -41,5 +41,6 @@ namespace WebFilm_API.Models
         public string? Director { get; set; } = string.Empty;
         public string? Performer { get; set; } = string.Empty;
         public List<MovieGenre> MovieGenres { get; set; } = new List<MovieGenre>();
+        public List<View> Views { get; set; } = new List<View>();
     }
 }

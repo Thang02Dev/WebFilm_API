@@ -79,7 +79,8 @@ namespace WebFilm_API.Services.MovieServices
                 Year_Release =model.Year_Release,
                 Tags = model.Tags,  
                 Director = model.Director,
-                Performer = model.Performer
+                Performer = model.Performer,
+                
             };
             await _dbContext.Movies.AddAsync(movie);
             await _dbContext.SaveChangesAsync();
@@ -326,25 +327,49 @@ namespace WebFilm_API.Services.MovieServices
         {
             int take=8;
             if (cateSlug == "phim-bo") take = 20;
-            
-            var query = (from movie in _dbContext.Movies
-                        join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
-                        where movie.Status == true && cate.Slug == cateSlug.ToLower()
-                        orderby movie.Position
-                        select new MovieViewModel
-                        {
-                            Id = movie.Id,
-                            Title = movie.Title,
-                            Image = movie.Image,
-                            Episode_Number = movie.Episode_Number,
-                            CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
-                            Subtitle = movie.Subtitle,
-                            Slug = movie.Slug,
-                            Position = movie.Position,
-                            CategoryName = cate.Name,
-                            EpisodeNew = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).Max(x => x.Episode_Number),
-                        }).Take(take);
-            return await query.ToListAsync();
+
+            if (cateSlug == "phim-le")
+            {
+                var query = (from movie in _dbContext.Movies
+                             join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                             where movie.Status == true && cate.Slug == cateSlug.ToLower() || cate.Slug == "phim-chieu-rap"
+                             orderby movie.Position
+                             select new MovieViewModel
+                             {
+                                 Id = movie.Id,
+                                 Title = movie.Title,
+                                 Image = movie.Image,
+                                 Episode_Number = movie.Episode_Number,
+                                 CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                 Subtitle = movie.Subtitle,
+                                 Slug = movie.Slug,
+                                 Position = movie.Position,
+                                 CategoryName = cate.Name,
+                                 EpisodeNew = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).Max(x => x.Episode_Number),
+                             }).Take(take);
+                return await query.ToListAsync();
+            }
+            else
+            {
+                var query = (from movie in _dbContext.Movies
+                             join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
+                             where movie.Status == true && cate.Slug == cateSlug.ToLower() 
+                             orderby movie.Position
+                             select new MovieViewModel
+                             {
+                                 Id = movie.Id,
+                                 Title = movie.Title,
+                                 Image = movie.Image,
+                                 Episode_Number = movie.Episode_Number,
+                                 CountEpisodes = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).ToList().Count,
+                                 Subtitle = movie.Subtitle,
+                                 Slug = movie.Slug,
+                                 Position = movie.Position,
+                                 CategoryName = cate.Name,
+                                 EpisodeNew = _dbContext.Episodes.Where(x => x.MovieId == movie.Id).Max(x => x.Episode_Number),
+                             }).Take(take);
+                return await query.ToListAsync();
+            }
         }
         public async Task<List<MovieViewModel>> GetByGenreSlug(string genreSlug)
         {
@@ -2732,5 +2757,7 @@ namespace WebFilm_API.Services.MovieServices
                         };
             return await query.ToListAsync();
         }
+
+        
     }
 }

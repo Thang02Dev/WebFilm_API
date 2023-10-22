@@ -76,6 +76,65 @@ namespace WebFilm_API.Services.EpisodeServices
             return await query.FirstOrDefaultAsync();
         }
 
+        public async Task<EpisodeViewModel> GetGroupByEpisodeNumber(int number,int movieId,int serverId)
+        {
+            var groupedEpisodes = await _dbContext.Episodes.OrderBy(x => x.Episode_Number)
+                .Where(x => x.Episode_Number == number && x.MovieId==movieId && x.LinkServerId==serverId)
+                .GroupBy(e => e.MovieId)
+                .ToListAsync();
+
+            List<EpisodeViewModel> result = new List<EpisodeViewModel>();
+
+            foreach (var group in groupedEpisodes)
+            {
+                foreach (var episode in group)
+                {
+#pragma warning disable CS8629 // Nullable value type may be null.
+                    result.Add(new EpisodeViewModel
+                    {
+                        Id = episode.Id,
+                        MovieId = episode.MovieId,
+                        Link = episode.Link,
+                        Episode_Number = episode.Episode_Number,
+                        LinkServerId = (int)episode.LinkServerId,
+                        ServerName = _dbContext.LinkServers.Single(x => x.Id == episode.LinkServerId).Name,
+                    });
+#pragma warning restore CS8629 // Nullable value type may be null.
+                }
+            }
+
+            return result.Single();
+        }
+        public async Task<List<EpisodeViewModel>> GetServer(int number, int movieId)
+        {
+            var groupedEpisodes = await _dbContext.Episodes
+                .Where(x => x.Episode_Number == number && x.MovieId == movieId)
+                .GroupBy(e => e.LinkServerId)
+                .ToListAsync();
+
+            List<EpisodeViewModel> result = new List<EpisodeViewModel>();
+
+            foreach (var group in groupedEpisodes)
+            {
+                foreach (var episode in group)
+                {
+#pragma warning disable CS8629 // Nullable value type may be null.
+                    result.Add(new EpisodeViewModel
+                    {
+                        Id = episode.Id,
+                        MovieId = episode.MovieId,
+                        Link = episode.Link,
+                        Episode_Number = episode.Episode_Number,
+                        LinkServerId = (int)episode.LinkServerId,
+                        ServerName = _dbContext.LinkServers.Single(x => x.Id == episode.LinkServerId).Name,
+                    });
+#pragma warning restore CS8629 // Nullable value type may be null.
+                }
+            }
+
+            return result.OrderBy(x=>x.ServerName).ToList();
+        }
+
         public async Task<List<EpisodeViewModel>> GetGroupByMovieId(int movie_id)
         {
             var groupedEpisodes = await _dbContext.Episodes.OrderBy(x=>x.Episode_Number)
@@ -100,6 +159,41 @@ namespace WebFilm_API.Services.EpisodeServices
                         ServerName = _dbContext.LinkServers.Single(x=>x.Id==episode.LinkServerId).Name,
                     });
 #pragma warning restore CS8629 // Nullable value type may be null.
+                }
+            }
+
+            return result;
+        }
+        public async Task<List<EpisodeViewModel>> GetEpisodes(int movie_id)
+        {
+            var distinctEpisodeNumbers = await _dbContext.Episodes
+                .Where(x => x.MovieId == movie_id)
+                .Select(x => x.Episode_Number)
+                .Distinct()
+                .OrderBy(x => x)
+                .ToListAsync();
+
+            List<EpisodeViewModel> result = new List<EpisodeViewModel>();
+
+            foreach (var episodeNumber in distinctEpisodeNumbers)
+            {
+                // Lấy một episode từ mỗi episode_number
+                var episode = await _dbContext.Episodes
+                    .Where(x => x.MovieId == movie_id && x.Episode_Number == episodeNumber)
+                    .FirstOrDefaultAsync();
+
+                if (episode != null)
+                {
+                    result.Add(new EpisodeViewModel
+                    {
+                        Id = episode.Id,
+                        MovieId = episode.MovieId,
+                        Link = episode.Link,
+                        Episode_Number = episode.Episode_Number,
+                        LinkServerId = episode.LinkServerId ?? 0,
+                        ServerName = _dbContext.LinkServers
+                            .FirstOrDefault(x => x.Id == episode.LinkServerId)?.Name ?? string.Empty
+                    });
                 }
             }
 

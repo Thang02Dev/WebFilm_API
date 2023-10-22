@@ -34,6 +34,27 @@ namespace WebFilm_API.Controllers
             if (rs == null) return NotFound();
             return Ok(rs);
         }
+        [HttpGet("get-episodes/{id:int}")]
+        public async Task<IActionResult> GetEpidoes(int id)
+        {
+            var rs = await _service.GetEpisodes(id);
+            if (rs == null) return NotFound();
+            return Ok(rs);
+        }
+        [HttpGet("get-by-episode-number/{id:int}")]
+        public async Task<IActionResult> GetGroupByEpisodeNumber(int id,int movieId, int serverId)
+        {
+            var rs = await _service.GetGroupByEpisodeNumber(id,movieId,serverId);
+            if (rs == null) return NotFound();
+            return Ok(rs);
+        }
+        [HttpGet("get-server/{id:int}")]
+        public async Task<IActionResult> GetServer(int id, int movieId)
+        {
+            var rs = await _service.GetServer(id, movieId);
+            if (rs == null) return NotFound();
+            return Ok(rs);
+        }
         [HttpGet("get-by-id/{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {

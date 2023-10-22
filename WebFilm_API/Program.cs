@@ -7,6 +7,7 @@ using WebFilm_API.Services.EpisodeServices;
 using WebFilm_API.Services.GenreServices;
 using WebFilm_API.Services.LinkServerServices;
 using WebFilm_API.Services.MovieServices;
+using WebFilm_API.Services.ViewServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +25,7 @@ builder.Services.AddScoped<IGenreService,GenreService>();
 builder.Services.AddScoped<IMovieService,MovieService>();
 builder.Services.AddScoped<ILinkServerService,LinkServerService>();
 builder.Services.AddScoped<IEpisodeService,EpisodeService>();
+builder.Services.AddScoped<IViewService,ViewService>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

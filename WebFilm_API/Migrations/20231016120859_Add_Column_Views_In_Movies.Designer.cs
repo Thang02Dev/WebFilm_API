@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WebFilm_API.DB;
 
@@ -11,9 +12,11 @@ using WebFilm_API.DB;
 namespace WebFilm_API.Migrations
 {
     [DbContext(typeof(MyDbContext))]
-    partial class MyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231016120859_Add_Column_Views_In_Movies")]
+    partial class Add_Column_Views_In_Movies
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -255,6 +258,9 @@ namespace WebFilm_API.Migrations
                     b.Property<DateTime?>("Updated_Date")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("Views")
+                        .HasColumnType("int");
+
                     b.Property<string>("Year_Release")
                         .IsRequired()
                         .HasMaxLength(10)
@@ -321,30 +327,6 @@ namespace WebFilm_API.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("WebFilm_API.Models.View", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime?>("DateViewed")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("MovieId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ViewerIP")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MovieId");
-
-                    b.ToTable("Views");
-                });
-
             modelBuilder.Entity("WebFilm_API.Models.Episode", b =>
                 {
                     b.HasOne("WebFilm_API.Models.LinkServer", "LinkServer")
@@ -394,17 +376,6 @@ namespace WebFilm_API.Migrations
                     b.Navigation("Movie");
                 });
 
-            modelBuilder.Entity("WebFilm_API.Models.View", b =>
-                {
-                    b.HasOne("WebFilm_API.Models.Movie", "Movie")
-                        .WithMany("Views")
-                        .HasForeignKey("MovieId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Movie");
-                });
-
             modelBuilder.Entity("WebFilm_API.Models.Category", b =>
                 {
                     b.Navigation("Movies");
@@ -428,8 +399,6 @@ namespace WebFilm_API.Migrations
             modelBuilder.Entity("WebFilm_API.Models.Movie", b =>
                 {
                     b.Navigation("MovieGenres");
-
-                    b.Navigation("Views");
                 });
 #pragma warning restore 612, 618
         }

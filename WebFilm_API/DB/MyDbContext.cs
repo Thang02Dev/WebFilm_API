@@ -11,6 +11,7 @@ namespace WebFilm_API.DB
         public DbSet<Genre> Genres { get; set; }
         public DbSet<Movie> Movies { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<View> Views { get; set; }
         public DbSet<MovieGenre> MovieGenres { get; set; }
         public DbSet<LinkServer> LinkServers { get; set; }
         public MyDbContext(DbContextOptions<MyDbContext> options) : base(options)
