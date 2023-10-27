@@ -159,5 +159,40 @@ namespace WebFilm_API.Services.ViewServices
             await _dbcontext.SaveChangesAsync();
             return true;
         }
+
+        public async Task<List<ViewViewModel>> GetCountAll()
+        {
+            var query = from v in _dbcontext.Views
+                        join m in _dbcontext.Movies on v.MovieId equals m.Id
+                        group new { v, m } by v.MovieId into grouped
+                        orderby grouped.Count() descending
+                        select new ViewViewModel
+                        {
+                            MovieId = grouped.Key,
+                            Title = grouped.First().m.Title,
+                            Name_Eng = grouped.First().m.Name_Eng,
+                            Count = grouped.Count(),
+                        };
+            return await query.ToListAsync();
+        }
+        public async Task<object?> PaginationCountView(int currentPage)
+        {
+            var pageResults = 10f;
+            var pageCount = Math.Ceiling(GetCountAll().Result.Count / pageResults);
+
+            var views = await GetCountAll();
+
+            var result = views.Skip((currentPage - 1) * (int)pageResults).Take((int)pageResults).ToList();
+
+            if (result == null) return null;
+
+            var viewPagin = new
+            {
+                Data = result,
+                CurrentPage = currentPage,
+                PageCount = (int)pageCount
+            };
+            return viewPagin;
+        }
     }
 }

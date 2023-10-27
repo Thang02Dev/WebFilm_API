@@ -27,11 +27,24 @@ namespace WebFilm_API.Controllers
             if (rs == null) return NotFound();
             return Ok(rs);
         }
+        [HttpGet("get-view-all/{page:int}")]
+        public async Task<IActionResult> GetCountPagin(int page)
+        {
+            var rs = await _service.PaginationCountView(page);
+            if (rs == null) return NotFound();
+            return Ok(rs);
+        }
         [HttpPost("created-view/{movieId:int}")]
         public async Task<IActionResult> CreatedView(int movieId)
         {
             var rs = await _service.CreatedView(movieId, HttpContext);
             if (rs == null) return BadRequest();
+            return Ok(rs);
+        }
+        [HttpGet("get-view-all")]
+        public async Task<IActionResult> GetCountAll()
+        {
+            var rs = await _service.GetCountAll();
             return Ok(rs);
         }
         [HttpGet("get-view-day")]

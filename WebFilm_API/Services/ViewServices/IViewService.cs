@@ -7,9 +7,11 @@ namespace WebFilm_API.Services.ViewServices
         Task<List<ViewViewModel>> GetAll();
         Task<bool> Delete(int id);
         Task<ViewPagin?> Pagination(int currentPage);
-        Task<ViewViewModel?> CreatedView(int movieId, HttpContext context); 
+        Task<ViewViewModel?> CreatedView(int movieId, HttpContext context);
+        Task<object?> PaginationCountView(int currentPage);
         Task<List<ViewViewModel>> GetCountByDay();
         Task<List<ViewViewModel>> GetCountByMonth();
         Task<List<ViewViewModel>> GetCountByWeek();
+        Task<List<ViewViewModel>> GetCountAll();
     }
 }

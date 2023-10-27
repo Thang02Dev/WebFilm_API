@@ -1,4 +1,7 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using WebFilm_API.DB;
 using WebFilm_API.Hubs;
 using WebFilm_API.Services.CategoryServices;
@@ -7,6 +10,7 @@ using WebFilm_API.Services.EpisodeServices;
 using WebFilm_API.Services.GenreServices;
 using WebFilm_API.Services.LinkServerServices;
 using WebFilm_API.Services.MovieServices;
+using WebFilm_API.Services.UserServices;
 using WebFilm_API.Services.ViewServices;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -26,12 +30,33 @@ builder.Services.AddScoped<IMovieService,MovieService>();
 builder.Services.AddScoped<ILinkServerService,LinkServerService>();
 builder.Services.AddScoped<IEpisodeService,EpisodeService>();
 builder.Services.AddScoped<IViewService,ViewService>();
+builder.Services.AddScoped<IUserService,UserService>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddCors(c => c.AddPolicy("AlowOrigin", options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader().AllowAnyOrigin()));
+builder.Services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+        .AddJwtBearer(options =>
+        {
+            options.RequireHttpsMetadata = false;
+            options.SaveToken = true;
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration.GetSection("Jwt:SecretKey").Value!)),
+                ValidateIssuer = false,
+                ValidateAudience = false
+            };
+        });
+
+
+
+builder.Services.AddCors(c => c.AddPolicy("AlowOrigin", options => options.WithOrigins("http://127.0.0.1:5173").AllowAnyMethod().AllowAnyHeader().AllowCredentials()));
 
 var app = builder.Build();
 
@@ -45,6 +70,7 @@ app.UseCors(options => options.AllowAnyMethod().AllowAnyHeader().SetIsOriginAllo
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapHub<UserHub>("/userhub");
