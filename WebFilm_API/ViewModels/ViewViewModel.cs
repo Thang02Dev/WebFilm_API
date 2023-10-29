@@ -8,6 +8,7 @@ namespace WebFilm_API.ViewModels
         public string Title { get; set; }
         public string Name_Eng { get; set; }
         public int Count { get; set; }
+        public string Slug { get; set; }
         public string? ViewerIP { get; set; }
         public DateTime? DateViewed { get; set; }
     }

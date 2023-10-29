@@ -1,6 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using WebFilm_API.DB;
 using WebFilm_API.Services.CountryServices;
 using WebFilm_API.ViewModels;
 
@@ -8,6 +7,7 @@ namespace WebFilm_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class CountriesController : ControllerBase
     {
         private readonly ICountryService _service;

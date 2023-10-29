@@ -68,6 +68,7 @@ namespace WebFilm_API.Services.ViewServices
                             Title = grouped.First().m.Title,
                             Name_Eng = grouped.First().m.Name_Eng,
                             Count = grouped.Count(),
+                            Slug = grouped.First().m.Slug
                         };
             return await query.Take(10).ToListAsync();
         }
@@ -85,6 +86,7 @@ namespace WebFilm_API.Services.ViewServices
                             Title = grouped.First().m.Title,
                             Name_Eng = grouped.First().m.Name_Eng,
                             Count = grouped.Count(),
+                            Slug = grouped.First().m.Slug
                         };
             return await query.Take(10).ToListAsync();
         }
@@ -111,6 +113,7 @@ namespace WebFilm_API.Services.ViewServices
                             Title = grouped.First().m.Title,
                             Name_Eng = grouped.First().m.Name_Eng,
                             Count = grouped.Count(),
+                            Slug = grouped.First().m.Slug
                         };
 
             return query.Take(10).ToList();

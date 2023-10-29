@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using WebFilm_API.Services.EpisodeServices;
 using WebFilm_API.ViewModels;
 
@@ -6,6 +7,7 @@ namespace WebFilm_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class EpisodesController : ControllerBase
     {
         private readonly IEpisodeService _service;

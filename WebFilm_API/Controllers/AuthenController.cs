@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 using WebFilm_API.Services.UserServices;
 using WebFilm_API.ViewModels;
 
@@ -17,7 +18,7 @@ namespace WebFilm_API.Controllers
 
         [AllowAnonymous]
         [HttpPost("login")]
-        public async Task<IActionResult> Login(LoginViewModel model)
+        public async Task<IActionResult> Login([FromBody]LoginViewModel model)
         {
             if (!ModelState.IsValid)
             {
@@ -33,8 +34,9 @@ namespace WebFilm_API.Controllers
                     HttpOnly = true, // Đảm bảo cookie không thể truy cập bằng mã JavaScript
                     SameSite = SameSiteMode.Strict, // Cấu hình SameSite
                     Secure = true, // Đảm bảo cookie chỉ được gửi qua kết nối bảo mật HTTPS
-                    Expires = DateTimeOffset.Now.AddDays(1)// Thời gian tồn tại của cookie
-                });
+                    Expires = DateTimeOffset.Now.AddDays(1),// Thời gian tồn tại của cookie
+            });
+
                 return Ok(new
                 {
                     mess = "Đăng nhập thành công!",
