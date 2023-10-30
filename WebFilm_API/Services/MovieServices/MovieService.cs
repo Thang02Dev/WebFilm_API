@@ -332,7 +332,7 @@ namespace WebFilm_API.Services.MovieServices
             {
                 var query = (from movie in _dbContext.Movies
                              join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
-                             where movie.Status == true && cate.Slug == cateSlug.ToLower() || cate.Slug == "phim-chieu-rap"
+                             where movie.Status == true && cate.Slug == cateSlug.ToLower()
                              orderby movie.Position
                              select new MovieViewModel
                              {
@@ -447,7 +447,7 @@ namespace WebFilm_API.Services.MovieServices
             {
                 var query = from movie in _dbContext.Movies
                             join cate in _dbContext.Categories on movie.CategoryId equals cate.Id
-                            where movie.Status == true && cate.Id == cateId || cate.Slug == "phim-chieu-rap"
+                            where movie.Status == true && cate.Id == cateId 
                             orderby movie.Updated_Date descending
                             select new MovieViewModel
                             {
