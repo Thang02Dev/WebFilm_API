@@ -7,7 +7,7 @@ namespace WebFilm_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    
     public class MoviesController : ControllerBase
     {
         private readonly IMovieService _service;
@@ -53,6 +53,7 @@ namespace WebFilm_API.Controllers
             return Ok(rs);
         }
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> GetAll()
         {
             var rs = await _service.GetAll();
@@ -88,6 +89,7 @@ namespace WebFilm_API.Controllers
             return Ok(rs);
         }
         [HttpGet("get-count")]
+        [Authorize]
         public async Task<IActionResult> GetCount()
         {
             var rs = await _service.GetCount();
@@ -108,6 +110,7 @@ namespace WebFilm_API.Controllers
             return Ok(rs);
         }
         [HttpGet("{page:int}")]
+        [Authorize]
         public async Task<IActionResult> GetPagin(int page)
         {
             var rs = await _service.Pagination(page);
@@ -150,6 +153,7 @@ namespace WebFilm_API.Controllers
             return Ok(rs);
         }
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> Create([FromForm]MovieViewModel model)
         {
             if (await _service.CheckName(model.Title)) return BadRequest("Tên phim đã tồn tại!");
@@ -158,6 +162,7 @@ namespace WebFilm_API.Controllers
             return Ok(rs);
         }
         [HttpPut]
+        [Authorize]
         public async Task<IActionResult> Update(int id,[FromForm] MovieViewModel model)
         {
             var rs = await _service.Update(id, model);
@@ -165,6 +170,7 @@ namespace WebFilm_API.Controllers
             return Ok(rs);
         }
         [HttpDelete]
+        [Authorize]
         public async Task<IActionResult> Delete(int id)
         {
             var rs = await _service.Delete(id);
@@ -172,24 +178,28 @@ namespace WebFilm_API.Controllers
             return Ok(rs);
         }
         [HttpPost("changed-status")]
+        [Authorize]
         public async Task<IActionResult> ChangedStatus(int id)
         {
             var rs = await _service.ChangedStatus(id);
             return Ok(rs);
         }
         [HttpPost("changed-position")]
+        [Authorize]
         public async Task<IActionResult> ChangedPosition(int id, int newPosition)
         {
             var rs = await _service.ChangedPosition(id, newPosition);
             return Ok(rs);
         }
         [HttpPost("changed-hot")]
+        [Authorize]
         public async Task<IActionResult> ChangedHot(int id)
         {
             var rs = await _service.ChangedHot(id);
             return Ok(rs);
         }
         [HttpPost("changed-topview")]
+        [Authorize]
         public async Task<IActionResult> ChangedTopView(int id)
         {
             var rs = await _service.ChangedTopView(id);

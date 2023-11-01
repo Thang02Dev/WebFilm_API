@@ -9,7 +9,7 @@ namespace WebFilm_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    
     public class GenresController : ControllerBase
     {
         private readonly IGenreService _service;
@@ -18,6 +18,7 @@ namespace WebFilm_API.Controllers
             _service = service;
         }
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> GetAll()
         {
             var rs = await _service.GetAll();
@@ -25,6 +26,7 @@ namespace WebFilm_API.Controllers
             return Ok(rs);
         }
         [HttpGet("get-count")]
+        [Authorize]
         public async Task<IActionResult> GetCount()
         {
             var rs = await _service.GetCount();
@@ -45,6 +47,7 @@ namespace WebFilm_API.Controllers
             return Ok(rs);
         }
         [HttpGet("{id:int}")]
+        [Authorize]
         public async Task<IActionResult> GetById(int id)
         {
             var rs = await _service.GetById(id);
@@ -52,6 +55,7 @@ namespace WebFilm_API.Controllers
             return Ok(rs);
         }
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> Create(GenreViewModel model)
         {
             if (await _service.CheckName(model.Name)) return BadRequest("Tên thể loại đã tồn tại!");
@@ -60,6 +64,7 @@ namespace WebFilm_API.Controllers
             return Ok(rs);
         }
         [HttpPut]
+        [Authorize]
         public async Task<IActionResult> Update(int id, GenreViewModel model)
         {
             var rs = await _service.Update(id, model);
@@ -67,6 +72,7 @@ namespace WebFilm_API.Controllers
             return Ok(rs);
         }
         [HttpDelete]
+        [Authorize]
         public async Task<IActionResult> Delete(int id)
         {
             var rs = await _service.Delete(id);
@@ -74,6 +80,7 @@ namespace WebFilm_API.Controllers
             return Ok(rs);
         }
         [HttpPost("changed-status")]
+        [Authorize]
         public async Task<IActionResult> ChangedStatus(int id)
         {
             var rs = await _service.ChangedStatus(id);

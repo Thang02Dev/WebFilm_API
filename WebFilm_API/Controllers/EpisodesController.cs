@@ -7,7 +7,7 @@ namespace WebFilm_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    
     public class EpisodesController : ControllerBase
     {
         private readonly IEpisodeService _service;
@@ -16,6 +16,7 @@ namespace WebFilm_API.Controllers
             _service = service;
         }
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> GetAll()
         {
             var rs = await _service.GetAll();
@@ -23,6 +24,7 @@ namespace WebFilm_API.Controllers
             return Ok(rs);
         }
         [HttpGet("{page:int}")]
+        [Authorize]
         public async Task<IActionResult> GetPagin(int id,int page)
         {
             var rs = await _service.Pagination(id,page);
@@ -30,6 +32,7 @@ namespace WebFilm_API.Controllers
             return Ok(rs);
         }
         [HttpGet("get-by-movieid/{id:int}")]
+        [Authorize]
         public async Task<IActionResult> GetGroupByMovieId(int id)
         {
             var rs = await _service.GetGroupByMovieId(id);
@@ -37,6 +40,7 @@ namespace WebFilm_API.Controllers
             return Ok(rs);
         }
         [HttpGet("get-episodes/{id:int}")]
+
         public async Task<IActionResult> GetEpidoes(int id)
         {
             var rs = await _service.GetEpisodes(id);
@@ -44,6 +48,7 @@ namespace WebFilm_API.Controllers
             return Ok(rs);
         }
         [HttpGet("get-by-episode-number/{id:int}")]
+
         public async Task<IActionResult> GetGroupByEpisodeNumber(int id,int movieId, int serverId)
         {
             var rs = await _service.GetGroupByEpisodeNumber(id,movieId,serverId);
@@ -58,6 +63,7 @@ namespace WebFilm_API.Controllers
             return Ok(rs);
         }
         [HttpGet("get-by-id/{id:int}")]
+        [Authorize]
         public async Task<IActionResult> GetById(int id)
         {
             var rs = await _service.GetById(id);
@@ -65,6 +71,7 @@ namespace WebFilm_API.Controllers
             return Ok(rs);
         }
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> Create(EpisodeViewModel model)
         {
             var rs = await _service.Create(model);
@@ -72,6 +79,7 @@ namespace WebFilm_API.Controllers
             return Ok(rs);
         }
         [HttpPut]
+        [Authorize]
         public async Task<IActionResult> Update(int id, EpisodeViewModel model)
         {
             var rs = await _service.Update(id, model);
@@ -79,6 +87,7 @@ namespace WebFilm_API.Controllers
             return Ok(rs);
         }
         [HttpDelete]
+        [Authorize]
         public async Task<IActionResult> Delete(int id)
         {
             var rs = await _service.Delete(id);

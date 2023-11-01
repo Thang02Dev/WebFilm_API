@@ -7,7 +7,7 @@ namespace WebFilm_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    
     public class ViewsController : ControllerBase
     {
         private readonly IViewService _service;
@@ -17,12 +17,14 @@ namespace WebFilm_API.Controllers
             _service = service;
         }
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> GetAll()
         {
             var rs = await _service.GetAll();
             return Ok(rs);
         }
         [HttpGet("page/{page:int}")]
+        [Authorize]
         public async Task<IActionResult> GetPagin(int page)
         {
             var rs = await _service.Pagination(page);
@@ -30,6 +32,7 @@ namespace WebFilm_API.Controllers
             return Ok(rs);
         }
         [HttpGet("get-view-all/{page:int}")]
+        [Authorize][Authorize]
         public async Task<IActionResult> GetCountPagin(int page)
         {
             var rs = await _service.PaginationCountView(page);
@@ -44,6 +47,7 @@ namespace WebFilm_API.Controllers
             return Ok(rs);
         }
         [HttpGet("get-view-all")]
+        [Authorize]
         public async Task<IActionResult> GetCountAll()
         {
             var rs = await _service.GetCountAll();
@@ -68,6 +72,7 @@ namespace WebFilm_API.Controllers
             return Ok(rs);
         }
         [HttpDelete("{id:int}")]
+        [Authorize]
         public async Task<IActionResult> Delete(int id)
         {
             var rs = await _service.Delete(id);
