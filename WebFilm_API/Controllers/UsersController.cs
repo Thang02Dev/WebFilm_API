@@ -10,13 +10,13 @@ namespace WebFilm_API.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class UserController : ControllerBase
+    public class UsersController : ControllerBase
     {
         private readonly IHubContext<UserHub> _hubContext;
         private readonly IUserService _service;
         private static int userCount = 0; // Số lượng người dùng
 
-        public UserController(IHubContext<UserHub> hubContext, IUserService service)
+        public UsersController(IHubContext<UserHub> hubContext, IUserService service)
         {
             _hubContext = hubContext;
             _service = service;

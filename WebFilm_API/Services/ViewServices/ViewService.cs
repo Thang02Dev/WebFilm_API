@@ -94,14 +94,14 @@ namespace WebFilm_API.Services.ViewServices
         public async Task<List<ViewViewModel>> GetCountByWeek()
         {
             int currentYear = DateTime.Now.Year;
-            int currentWeek = CultureInfo.CurrentCulture.Calendar.GetWeekOfYear(DateTime.Now, CalendarWeekRule.FirstFourDayWeek, DayOfWeek.Sunday);
+            int currentWeek = CultureInfo.CurrentCulture.Calendar.GetWeekOfYear(DateTime.Now, CalendarWeekRule.FirstFourDayWeek, DayOfWeek.Monday);
 
             var movieViews = await _dbcontext.Views.ToListAsync();
 
             var currentWeekViews = movieViews
                 .Where(view => view.DateViewed.HasValue &&
                     view.DateViewed.Value.Year == currentYear &&
-                    CultureInfo.CurrentCulture.Calendar.GetWeekOfYear(view.DateViewed.Value, CalendarWeekRule.FirstFourDayWeek, DayOfWeek.Sunday) == currentWeek);
+                    CultureInfo.CurrentCulture.Calendar.GetWeekOfYear(view.DateViewed.Value, CalendarWeekRule.FirstFourDayWeek, DayOfWeek.Monday) == currentWeek);
 
             var query = from v in currentWeekViews
                         join m in _dbcontext.Movies on v.MovieId equals m.Id
