@@ -53,7 +53,7 @@ namespace WebFilm_API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
                 });
 
             modelBuilder.Entity("WebFilm_API.Models.Country", b =>
@@ -84,7 +84,7 @@ namespace WebFilm_API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Countries");
+                    b.ToTable("Countries", (string)null);
                 });
 
             modelBuilder.Entity("WebFilm_API.Models.Episode", b =>
@@ -115,7 +115,7 @@ namespace WebFilm_API.Migrations
 
                     b.HasIndex("MovieId");
 
-                    b.ToTable("Episodes");
+                    b.ToTable("Episodes", (string)null);
                 });
 
             modelBuilder.Entity("WebFilm_API.Models.Genre", b =>
@@ -146,7 +146,7 @@ namespace WebFilm_API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Genres");
+                    b.ToTable("Genres", (string)null);
                 });
 
             modelBuilder.Entity("WebFilm_API.Models.LinkServer", b =>
@@ -171,7 +171,7 @@ namespace WebFilm_API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("LinkServers");
+                    b.ToTable("LinkServers", (string)null);
                 });
 
             modelBuilder.Entity("WebFilm_API.Models.Movie", b =>
@@ -266,7 +266,7 @@ namespace WebFilm_API.Migrations
 
                     b.HasIndex("CountryId");
 
-                    b.ToTable("Movies");
+                    b.ToTable("Movies", (string)null);
                 });
 
             modelBuilder.Entity("WebFilm_API.Models.MovieGenre", b =>
@@ -281,7 +281,7 @@ namespace WebFilm_API.Migrations
 
                     b.HasIndex("GenreId");
 
-                    b.ToTable("MovieGenres");
+                    b.ToTable("MovieGenres", (string)null);
                 });
 
             modelBuilder.Entity("WebFilm_API.Models.User", b =>
@@ -318,7 +318,7 @@ namespace WebFilm_API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("WebFilm_API.Models.View", b =>
@@ -342,7 +342,7 @@ namespace WebFilm_API.Migrations
 
                     b.HasIndex("MovieId");
 
-                    b.ToTable("Views");
+                    b.ToTable("Views", (string)null);
                 });
 
             modelBuilder.Entity("WebFilm_API.Models.Episode", b =>

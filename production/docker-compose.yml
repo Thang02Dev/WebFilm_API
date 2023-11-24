@@ -1,0 +1,59 @@
+version: '3'
+services:
+  mssql-server:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    restart: always
+    ports:
+      - "1434:1433"
+    environment:
+      MSSQL_SA_PASSWORD: Sa123456$
+      ACCEPT_EULA: Y
+    volumes:
+      - ./mssql/data:/var/opt/mssql/data
+    networks:
+      - mydatabase
+
+  data-importer:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    command: /opt/mssql-tools/bin/sqlcmd -S mssql-server -U sa -P Sa123456$ -d WebFilm -i /app/web_film_asp_v1.sql
+    depends_on:
+      - mssql-server
+    volumes:
+      - ../WebFilm_API/:/app
+    networks:
+      - mydatabase
+
+  api:
+    image: webfilm:latest
+    container_name: api-webfilm
+    build:
+      context: ../WebFilm_API
+      dockerfile: Dockerfile
+    ports:
+      - "8081:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__DefaultConnection=Data Source=mssql-server;Initial Catalog=WebFilm;User Id=sa;Password=Sa123456$;TrustServerCertificate=True
+    depends_on:
+      - "mssql-server"
+    networks:
+      - mydatabase
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ../WebFilm_FE/dist:/usr/share/nginx/html
+      - ./default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - "api"
+    networks:
+      - mydatabase
+
+volumes:
+  sqldata:
+
+networks:
+  mydatabase:

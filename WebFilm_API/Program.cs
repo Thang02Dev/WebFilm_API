@@ -80,9 +80,9 @@ builder.Services.AddAuthentication(options =>
             };
         });
 
+//var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
-
-builder.Services.AddCors(c => c.AddPolicy("AlowOrigin", options => options.WithOrigins("http://127.0.0.1:5173").AllowAnyMethod().AllowAnyHeader().AllowCredentials()));
+//builder.Services.AddCors(c => c.AddPolicy(name: MyAllowSpecificOrigins, options => options.WithOrigins("http://127.0.0.1:5173/").AllowAnyMethod().AllowAnyHeader().AllowCredentials()));
 
 var app = builder.Build();
 
@@ -92,7 +92,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-app.UseCors("AlowOrigin");
+app.UseCors(options =>
+{
+    options.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+});
 
 app.UseHttpsRedirection();
 
